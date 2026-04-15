@@ -1,0 +1,362 @@
+2026-04-06 14:15:56 - CampusAutoLogin - INFO - 日志系统初始化完成，日志级别: INFO
+2026-04-06 14:15:56 - CampusAutoLogin - INFO - 日志系统初始化完成，日志级别: INFO
+2026-04-06 14:15:56 - CampusAutoLogin - INFO - 日志文件: logs\campus_auto_login_2026-04-06.log
+2026-04-06 14:15:56 - CampusAutoLogin - INFO - 日志文件: logs\campus_auto_login_2026-04-06.log
+2026-04-06 14:15:56 - CampusAutoLogin - INFO - 主控制器初始化完成
+2026-04-06 14:15:56 - CampusAutoLogin - INFO - 主控制器初始化完成
+2026-04-06 14:15:56 - CampusAutoLogin - INFO - 调试模式已启用
+2026-04-06 14:15:56 - CampusAutoLogin - INFO - 调试模式已启用
+2026-04-06 14:15:56 - CampusAutoLogin - INFO - ==================================================
+2026-04-06 14:15:56 - CampusAutoLogin - INFO - ==================================================
+2026-04-06 14:15:56 - CampusAutoLogin - INFO - 开始校园网自动登录工作流程
+2026-04-06 14:15:56 - CampusAutoLogin - INFO - 开始校园网自动登录工作流程
+2026-04-06 14:15:56 - CampusAutoLogin - INFO - ==================================================
+2026-04-06 14:15:56 - CampusAutoLogin - INFO - ==================================================
+2026-04-06 14:15:56 - CampusAutoLogin - INFO - 等待系统启动完成 (30秒)
+2026-04-06 14:15:56 - CampusAutoLogin - INFO - 等待系统启动完成 (30秒)
+2026-04-06 14:15:56 - CampusAutoLogin - DEBUG - 等待系统启动... (0/30秒)
+2026-04-06 14:15:56 - CampusAutoLogin - DEBUG - 等待系统启动... (0/30秒)
+2026-04-06 14:16:06 - CampusAutoLogin - DEBUG - 等待系统启动... (10/30秒)
+2026-04-06 14:16:06 - CampusAutoLogin - DEBUG - 等待系统启动... (10/30秒)
+2026-04-06 14:16:16 - CampusAutoLogin - DEBUG - 等待系统启动... (20/30秒)
+2026-04-06 14:16:16 - CampusAutoLogin - DEBUG - 等待系统启动... (20/30秒)
+2026-04-06 14:16:26 - CampusAutoLogin - INFO - 系统启动等待完成
+2026-04-06 14:16:26 - CampusAutoLogin - INFO - 系统启动等待完成
+2026-04-06 14:16:26 - CampusAutoLogin - INFO - 开始 关闭浏览器窗口
+2026-04-06 14:16:26 - CampusAutoLogin - INFO - 开始 关闭浏览器窗口
+2026-04-06 14:16:26 - CampusAutoLogin - INFO - 未找到校园网登录网页
+2026-04-06 14:16:26 - CampusAutoLogin - INFO - 未找到校园网登录网页
+2026-04-06 14:16:26 - CampusAutoLogin - INFO - 结束 关闭浏览器窗口 - 成功 (closed=0)
+2026-04-06 14:16:26 - CampusAutoLogin - INFO - 结束 关闭浏览器窗口 - 成功 (closed=0)
+2026-04-06 14:16:26 - CampusAutoLogin - INFO - 开始 检查网络状态
+2026-04-06 14:16:26 - CampusAutoLogin - INFO - 开始 检查网络状态
+2026-04-06 14:16:47 - CampusAutoLogin - INFO - 结束 检查网络状态 - 成功 (status=healthy, needs_repair=False, reason=网络正常，无需修复)
+2026-04-06 14:16:47 - CampusAutoLogin - INFO - 结束 检查网络状态 - 成功 (status=healthy, needs_repair=False, reason=网络正常，无需修复)
+2026-04-06 14:16:47 - CampusAutoLogin - INFO - 网络正常，尝试登录
+2026-04-06 14:16:47 - CampusAutoLogin - INFO - 网络正常，尝试登录
+2026-04-06 14:16:47 - CampusAutoLogin - INFO - 开始 执行登录操作
+2026-04-06 14:16:47 - CampusAutoLogin - INFO - 开始 执行登录操作
+2026-04-06 14:19:24 - CampusAutoLogin - INFO - 日志系统初始化完成，日志级别: INFO
+2026-04-06 14:19:24 - CampusAutoLogin - INFO - 日志系统初始化完成，日志级别: INFO
+2026-04-06 14:19:24 - CampusAutoLogin - INFO - 日志文件: logs\campus_auto_login_2026-04-06.log
+2026-04-06 14:19:24 - CampusAutoLogin - INFO - 日志文件: logs\campus_auto_login_2026-04-06.log
+2026-04-06 14:19:24 - CampusAutoLogin - INFO - 主控制器初始化完成
+2026-04-06 14:19:24 - CampusAutoLogin - INFO - 主控制器初始化完成
+2026-04-06 14:19:24 - CampusAutoLogin - INFO - 调试模式已启用
+2026-04-06 14:19:24 - CampusAutoLogin - INFO - 调试模式已启用
+2026-04-06 14:19:24 - CampusAutoLogin - INFO - ==================================================
+2026-04-06 14:19:24 - CampusAutoLogin - INFO - ==================================================
+2026-04-06 14:19:24 - CampusAutoLogin - INFO - 开始校园网自动登录工作流程
+2026-04-06 14:19:24 - CampusAutoLogin - INFO - 开始校园网自动登录工作流程
+2026-04-06 14:19:24 - CampusAutoLogin - INFO - ==================================================
+2026-04-06 14:19:24 - CampusAutoLogin - INFO - ==================================================
+2026-04-06 14:19:24 - CampusAutoLogin - INFO - 等待系统启动完成 (30秒)
+2026-04-06 14:19:24 - CampusAutoLogin - INFO - 等待系统启动完成 (30秒)
+2026-04-06 14:19:24 - CampusAutoLogin - DEBUG - 等待系统启动... (0/30秒)
+2026-04-06 14:19:24 - CampusAutoLogin - DEBUG - 等待系统启动... (0/30秒)
+2026-04-06 14:19:34 - CampusAutoLogin - DEBUG - 等待系统启动... (10/30秒)
+2026-04-06 14:19:34 - CampusAutoLogin - DEBUG - 等待系统启动... (10/30秒)
+2026-04-06 14:19:44 - CampusAutoLogin - DEBUG - 等待系统启动... (20/30秒)
+2026-04-06 14:19:44 - CampusAutoLogin - DEBUG - 等待系统启动... (20/30秒)
+2026-04-06 14:19:54 - CampusAutoLogin - INFO - 系统启动等待完成
+2026-04-06 14:19:54 - CampusAutoLogin - INFO - 系统启动等待完成
+2026-04-06 14:19:54 - CampusAutoLogin - INFO - 开始 关闭浏览器窗口
+2026-04-06 14:19:54 - CampusAutoLogin - INFO - 开始 关闭浏览器窗口
+2026-04-06 14:19:54 - CampusAutoLogin - INFO - 未找到校园网登录网页
+2026-04-06 14:19:54 - CampusAutoLogin - INFO - 未找到校园网登录网页
+2026-04-06 14:19:54 - CampusAutoLogin - INFO - 结束 关闭浏览器窗口 - 成功 (closed=0)
+2026-04-06 14:19:54 - CampusAutoLogin - INFO - 结束 关闭浏览器窗口 - 成功 (closed=0)
+2026-04-06 14:19:54 - CampusAutoLogin - INFO - 开始 检查网络状态
+2026-04-06 14:19:54 - CampusAutoLogin - INFO - 开始 检查网络状态
+2026-04-06 14:20:15 - CampusAutoLogin - INFO - 结束 检查网络状态 - 成功 (status=healthy, needs_repair=False, reason=网络正常，无需修复)
+2026-04-06 14:20:15 - CampusAutoLogin - INFO - 结束 检查网络状态 - 成功 (status=healthy, needs_repair=False, reason=网络正常，无需修复)
+2026-04-06 14:20:15 - CampusAutoLogin - INFO - 网络正常，尝试登录
+2026-04-06 14:20:15 - CampusAutoLogin - INFO - 网络正常，尝试登录
+2026-04-06 14:20:15 - CampusAutoLogin - INFO - 开始 执行登录操作
+2026-04-06 14:20:15 - CampusAutoLogin - INFO - 开始 执行登录操作
+2026-04-06 14:20:53 - CampusAutoLogin - WARNING - 结束 执行登录操作 - 失败 (username=506659, attempts=3, success=False)
+2026-04-06 14:20:53 - CampusAutoLogin - WARNING - 结束 执行登录操作 - 失败 (username=506659, attempts=3, success=False)
+2026-04-06 14:20:53 - CampusAutoLogin - WARNING - 校园网登录: 经过 3 次尝试后登录失败
+2026-04-06 14:20:53 - CampusAutoLogin - WARNING - 校园网登录: 经过 3 次尝试后登录失败
+2026-04-06 14:20:53 - CampusAutoLogin - DEBUG - 通知系统不可用，跳过通知: 校园网自动登录工具 - 警告 - 校园网登录
+经过 3 次尝试后登录失败
+2026-04-06 14:20:53 - CampusAutoLogin - DEBUG - 通知系统不可用，跳过通知: 校园网自动登录工具 - 警告 - 校园网登录
+经过 3 次尝试后登录失败
+2026-04-06 14:20:53 - CampusAutoLogin - INFO - ==================================================
+2026-04-06 14:20:53 - CampusAutoLogin - INFO - ==================================================
+2026-04-06 14:20:53 - CampusAutoLogin - INFO - 工作流程完成，总耗时: 88.89秒
+2026-04-06 14:20:53 - CampusAutoLogin - INFO - 工作流程完成，总耗时: 88.89秒
+2026-04-06 14:20:53 - CampusAutoLogin - INFO - 最终结果: 失败
+2026-04-06 14:20:53 - CampusAutoLogin - INFO - 最终结果: 失败
+2026-04-06 14:20:53 - CampusAutoLogin - INFO - 最终消息: 经过 3 次尝试后登录失败
+2026-04-06 14:20:53 - CampusAutoLogin - INFO - 最终消息: 经过 3 次尝试后登录失败
+2026-04-06 14:20:53 - CampusAutoLogin - INFO - ==================================================
+2026-04-06 14:20:53 - CampusAutoLogin - INFO - ==================================================
+2026-04-06 14:20:53 - CampusAutoLogin - WARNING - 校园网自动登录: 登录失败: 经过 3 次尝试后登录失败
+2026-04-06 14:20:53 - CampusAutoLogin - WARNING - 校园网自动登录: 登录失败: 经过 3 次尝试后登录失败
+2026-04-06 14:20:53 - CampusAutoLogin - DEBUG - 通知系统不可用，跳过通知: 校园网自动登录工具 - 警告 - 校园网自动登录
+登录失败: 经过 3 次尝试后登录失败
+2026-04-06 14:20:53 - CampusAutoLogin - DEBUG - 通知系统不可用，跳过通知: 校园网自动登录工具 - 警告 - 校园网自动登录
+登录失败: 经过 3 次尝试后登录失败
+2026-04-06 14:22:06 - CampusAutoLogin - INFO - 日志系统初始化完成，日志级别: INFO
+2026-04-06 14:22:06 - CampusAutoLogin - INFO - 日志系统初始化完成，日志级别: INFO
+2026-04-06 14:22:06 - CampusAutoLogin - INFO - 日志文件: logs\campus_auto_login_2026-04-06.log
+2026-04-06 14:22:06 - CampusAutoLogin - INFO - 日志文件: logs\campus_auto_login_2026-04-06.log
+2026-04-06 14:22:06 - CampusAutoLogin - INFO - 主控制器初始化完成
+2026-04-06 14:22:06 - CampusAutoLogin - INFO - 主控制器初始化完成
+2026-04-06 14:22:06 - CampusAutoLogin - INFO - 调试模式已启用
+2026-04-06 14:22:06 - CampusAutoLogin - INFO - 调试模式已启用
+2026-04-06 14:22:06 - CampusAutoLogin - INFO - ==================================================
+2026-04-06 14:22:06 - CampusAutoLogin - INFO - ==================================================
+2026-04-06 14:22:06 - CampusAutoLogin - INFO - 开始校园网自动登录工作流程
+2026-04-06 14:22:06 - CampusAutoLogin - INFO - 开始校园网自动登录工作流程
+2026-04-06 14:22:06 - CampusAutoLogin - INFO - ==================================================
+2026-04-06 14:22:06 - CampusAutoLogin - INFO - ==================================================
+2026-04-06 14:22:06 - CampusAutoLogin - INFO - 等待系统启动完成 (30秒)
+2026-04-06 14:22:06 - CampusAutoLogin - INFO - 等待系统启动完成 (30秒)
+2026-04-06 14:22:06 - CampusAutoLogin - DEBUG - 等待系统启动... (0/30秒)
+2026-04-06 14:22:06 - CampusAutoLogin - DEBUG - 等待系统启动... (0/30秒)
+2026-04-06 14:22:16 - CampusAutoLogin - DEBUG - 等待系统启动... (10/30秒)
+2026-04-06 14:22:16 - CampusAutoLogin - DEBUG - 等待系统启动... (10/30秒)
+2026-04-06 14:22:26 - CampusAutoLogin - DEBUG - 等待系统启动... (20/30秒)
+2026-04-06 14:22:26 - CampusAutoLogin - DEBUG - 等待系统启动... (20/30秒)
+2026-04-06 14:22:36 - CampusAutoLogin - INFO - 系统启动等待完成
+2026-04-06 14:22:36 - CampusAutoLogin - INFO - 系统启动等待完成
+2026-04-06 14:22:36 - CampusAutoLogin - INFO - 开始 关闭浏览器窗口
+2026-04-06 14:22:36 - CampusAutoLogin - INFO - 开始 关闭浏览器窗口
+2026-04-06 14:22:36 - CampusAutoLogin - INFO - 未找到校园网登录网页
+2026-04-06 14:22:36 - CampusAutoLogin - INFO - 未找到校园网登录网页
+2026-04-06 14:22:36 - CampusAutoLogin - INFO - 结束 关闭浏览器窗口 - 成功 (closed=0)
+2026-04-06 14:22:36 - CampusAutoLogin - INFO - 结束 关闭浏览器窗口 - 成功 (closed=0)
+2026-04-06 14:22:36 - CampusAutoLogin - INFO - 开始 检查网络状态
+2026-04-06 14:22:36 - CampusAutoLogin - INFO - 开始 检查网络状态
+2026-04-06 14:22:46 - CampusAutoLogin - INFO - 结束 检查网络状态 - 成功 (status=healthy, needs_repair=False, reason=网络正常，无需修复)
+2026-04-06 14:22:46 - CampusAutoLogin - INFO - 结束 检查网络状态 - 成功 (status=healthy, needs_repair=False, reason=网络正常，无需修复)
+2026-04-06 14:22:46 - CampusAutoLogin - INFO - 网络正常，尝试登录
+2026-04-06 14:22:46 - CampusAutoLogin - INFO - 网络正常，尝试登录
+2026-04-06 14:22:46 - CampusAutoLogin - INFO - 开始 执行登录操作
+2026-04-06 14:22:46 - CampusAutoLogin - INFO - 开始 执行登录操作
+2026-04-06 14:23:38 - CampusAutoLogin - WARNING - 结束 执行登录操作 - 失败 (username=506659, attempts=3, success=False)
+2026-04-06 14:23:38 - CampusAutoLogin - WARNING - 结束 执行登录操作 - 失败 (username=506659, attempts=3, success=False)
+2026-04-06 14:23:38 - CampusAutoLogin - WARNING - 校园网登录: 经过 3 次尝试后登录失败
+2026-04-06 14:23:38 - CampusAutoLogin - WARNING - 校园网登录: 经过 3 次尝试后登录失败
+2026-04-06 14:23:38 - CampusAutoLogin - DEBUG - 通知系统不可用，跳过通知: 校园网自动登录工具 - 警告 - 校园网登录
+经过 3 次尝试后登录失败
+2026-04-06 14:23:38 - CampusAutoLogin - DEBUG - 通知系统不可用，跳过通知: 校园网自动登录工具 - 警告 - 校园网登录
+经过 3 次尝试后登录失败
+2026-04-06 14:23:38 - CampusAutoLogin - INFO - ==================================================
+2026-04-06 14:23:38 - CampusAutoLogin - INFO - ==================================================
+2026-04-06 14:23:38 - CampusAutoLogin - INFO - 工作流程完成，总耗时: 92.91秒
+2026-04-06 14:23:38 - CampusAutoLogin - INFO - 工作流程完成，总耗时: 92.91秒
+2026-04-06 14:23:38 - CampusAutoLogin - INFO - 最终结果: 失败
+2026-04-06 14:23:38 - CampusAutoLogin - INFO - 最终结果: 失败
+2026-04-06 14:23:38 - CampusAutoLogin - INFO - 最终消息: 经过 3 次尝试后登录失败
+2026-04-06 14:23:38 - CampusAutoLogin - INFO - 最终消息: 经过 3 次尝试后登录失败
+2026-04-06 14:23:38 - CampusAutoLogin - INFO - ==================================================
+2026-04-06 14:23:38 - CampusAutoLogin - INFO - ==================================================
+2026-04-06 14:23:38 - CampusAutoLogin - WARNING - 校园网自动登录: 登录失败: 经过 3 次尝试后登录失败
+2026-04-06 14:23:38 - CampusAutoLogin - WARNING - 校园网自动登录: 登录失败: 经过 3 次尝试后登录失败
+2026-04-06 14:23:38 - CampusAutoLogin - DEBUG - 通知系统不可用，跳过通知: 校园网自动登录工具 - 警告 - 校园网自动登录
+登录失败: 经过 3 次尝试后登录失败
+2026-04-06 14:23:38 - CampusAutoLogin - DEBUG - 通知系统不可用，跳过通知: 校园网自动登录工具 - 警告 - 校园网自动登录
+登录失败: 经过 3 次尝试后登录失败
+2026-04-06 14:42:46 - CampusAutoLogin - INFO - 日志系统初始化完成，日志级别: INFO
+2026-04-06 14:42:46 - CampusAutoLogin - INFO - 日志系统初始化完成，日志级别: INFO
+2026-04-06 14:42:46 - CampusAutoLogin - INFO - 日志文件: logs\campus_auto_login_2026-04-06.log
+2026-04-06 14:42:46 - CampusAutoLogin - INFO - 日志文件: logs\campus_auto_login_2026-04-06.log
+2026-04-06 14:42:46 - CampusAutoLogin - INFO - 主控制器初始化完成
+2026-04-06 14:42:46 - CampusAutoLogin - INFO - 主控制器初始化完成
+2026-04-06 14:42:46 - CampusAutoLogin - INFO - 调试模式已启用
+2026-04-06 14:42:46 - CampusAutoLogin - INFO - 调试模式已启用
+2026-04-06 14:42:46 - CampusAutoLogin - INFO - ==================================================
+2026-04-06 14:42:46 - CampusAutoLogin - INFO - ==================================================
+2026-04-06 14:42:46 - CampusAutoLogin - INFO - 开始校园网自动登录工作流程
+2026-04-06 14:42:46 - CampusAutoLogin - INFO - 开始校园网自动登录工作流程
+2026-04-06 14:42:46 - CampusAutoLogin - INFO - ==================================================
+2026-04-06 14:42:46 - CampusAutoLogin - INFO - ==================================================
+2026-04-06 14:42:46 - CampusAutoLogin - INFO - 等待系统启动完成 (30秒)
+2026-04-06 14:42:46 - CampusAutoLogin - INFO - 等待系统启动完成 (30秒)
+2026-04-06 14:42:46 - CampusAutoLogin - DEBUG - 等待系统启动... (0/30秒)
+2026-04-06 14:42:46 - CampusAutoLogin - DEBUG - 等待系统启动... (0/30秒)
+2026-04-06 14:42:56 - CampusAutoLogin - DEBUG - 等待系统启动... (10/30秒)
+2026-04-06 14:42:56 - CampusAutoLogin - DEBUG - 等待系统启动... (10/30秒)
+2026-04-06 14:43:06 - CampusAutoLogin - DEBUG - 等待系统启动... (20/30秒)
+2026-04-06 14:43:06 - CampusAutoLogin - DEBUG - 等待系统启动... (20/30秒)
+2026-04-06 14:43:16 - CampusAutoLogin - INFO - 系统启动等待完成
+2026-04-06 14:43:16 - CampusAutoLogin - INFO - 系统启动等待完成
+2026-04-06 14:43:16 - CampusAutoLogin - INFO - 开始 关闭浏览器窗口
+2026-04-06 14:43:16 - CampusAutoLogin - INFO - 开始 关闭浏览器窗口
+2026-04-06 14:43:16 - CampusAutoLogin - INFO - 未找到校园网登录网页
+2026-04-06 14:43:16 - CampusAutoLogin - INFO - 未找到校园网登录网页
+2026-04-06 14:43:16 - CampusAutoLogin - INFO - 结束 关闭浏览器窗口 - 成功 (closed=0)
+2026-04-06 14:43:16 - CampusAutoLogin - INFO - 结束 关闭浏览器窗口 - 成功 (closed=0)
+2026-04-06 14:43:16 - CampusAutoLogin - INFO - 开始 检查网络状态
+2026-04-06 14:43:16 - CampusAutoLogin - INFO - 开始 检查网络状态
+2026-04-06 14:43:37 - CampusAutoLogin - INFO - 结束 检查网络状态 - 成功 (status=healthy, needs_repair=False, reason=网络正常，无需修复)
+2026-04-06 14:43:37 - CampusAutoLogin - INFO - 结束 检查网络状态 - 成功 (status=healthy, needs_repair=False, reason=网络正常，无需修复)
+2026-04-06 14:43:37 - CampusAutoLogin - INFO - 网络正常，尝试登录
+2026-04-06 14:43:37 - CampusAutoLogin - INFO - 网络正常，尝试登录
+2026-04-06 14:43:37 - CampusAutoLogin - INFO - 开始 执行登录操作
+2026-04-06 14:43:37 - CampusAutoLogin - INFO - 开始 执行登录操作
+2026-04-06 14:45:32 - CampusAutoLogin - WARNING - 结束 执行登录操作 - 失败 (username=506659, attempts=3, success=False)
+2026-04-06 14:45:32 - CampusAutoLogin - WARNING - 结束 执行登录操作 - 失败 (username=506659, attempts=3, success=False)
+2026-04-06 14:45:32 - CampusAutoLogin - WARNING - 校园网登录: 经过 3 次尝试后登录失败
+2026-04-06 14:45:32 - CampusAutoLogin - WARNING - 校园网登录: 经过 3 次尝试后登录失败
+2026-04-06 14:45:32 - CampusAutoLogin - DEBUG - 通知系统不可用，跳过通知: 校园网自动登录工具 - 警告 - 校园网登录
+经过 3 次尝试后登录失败
+2026-04-06 14:45:32 - CampusAutoLogin - DEBUG - 通知系统不可用，跳过通知: 校园网自动登录工具 - 警告 - 校园网登录
+经过 3 次尝试后登录失败
+2026-04-06 14:45:32 - CampusAutoLogin - INFO - ==================================================
+2026-04-06 14:45:32 - CampusAutoLogin - INFO - ==================================================
+2026-04-06 14:45:32 - CampusAutoLogin - INFO - 工作流程完成，总耗时: 166.23秒
+2026-04-06 14:45:32 - CampusAutoLogin - INFO - 工作流程完成，总耗时: 166.23秒
+2026-04-06 14:45:32 - CampusAutoLogin - INFO - 最终结果: 失败
+2026-04-06 14:45:32 - CampusAutoLogin - INFO - 最终结果: 失败
+2026-04-06 14:45:32 - CampusAutoLogin - INFO - 最终消息: 经过 3 次尝试后登录失败
+2026-04-06 14:45:32 - CampusAutoLogin - INFO - 最终消息: 经过 3 次尝试后登录失败
+2026-04-06 14:45:32 - CampusAutoLogin - INFO - ==================================================
+2026-04-06 14:45:32 - CampusAutoLogin - INFO - ==================================================
+2026-04-06 14:45:32 - CampusAutoLogin - WARNING - 校园网自动登录: 登录失败: 经过 3 次尝试后登录失败
+2026-04-06 14:45:32 - CampusAutoLogin - WARNING - 校园网自动登录: 登录失败: 经过 3 次尝试后登录失败
+2026-04-06 14:45:32 - CampusAutoLogin - DEBUG - 通知系统不可用，跳过通知: 校园网自动登录工具 - 警告 - 校园网自动登录
+登录失败: 经过 3 次尝试后登录失败
+2026-04-06 14:45:32 - CampusAutoLogin - DEBUG - 通知系统不可用，跳过通知: 校园网自动登录工具 - 警告 - 校园网自动登录
+登录失败: 经过 3 次尝试后登录失败
+2026-04-06 14:56:34 - CampusAutoLogin - INFO - 日志系统初始化完成，日志级别: INFO
+2026-04-06 14:56:34 - CampusAutoLogin - INFO - 日志系统初始化完成，日志级别: INFO
+2026-04-06 14:56:34 - CampusAutoLogin - INFO - 日志文件: logs\campus_auto_login_2026-04-06.log
+2026-04-06 14:56:34 - CampusAutoLogin - INFO - 日志文件: logs\campus_auto_login_2026-04-06.log
+2026-04-06 14:56:34 - CampusAutoLogin - INFO - 主控制器初始化完成
+2026-04-06 14:56:34 - CampusAutoLogin - INFO - 主控制器初始化完成
+2026-04-06 14:56:34 - CampusAutoLogin - INFO - 调试模式已启用
+2026-04-06 14:56:34 - CampusAutoLogin - INFO - 调试模式已启用
+2026-04-06 14:56:34 - CampusAutoLogin - INFO - ==================================================
+2026-04-06 14:56:34 - CampusAutoLogin - INFO - ==================================================
+2026-04-06 14:56:34 - CampusAutoLogin - INFO - 开始校园网自动登录工作流程
+2026-04-06 14:56:34 - CampusAutoLogin - INFO - 开始校园网自动登录工作流程
+2026-04-06 14:56:34 - CampusAutoLogin - INFO - ==================================================
+2026-04-06 14:56:34 - CampusAutoLogin - INFO - ==================================================
+2026-04-06 14:56:34 - CampusAutoLogin - INFO - 等待系统启动完成 (30秒)
+2026-04-06 14:56:34 - CampusAutoLogin - INFO - 等待系统启动完成 (30秒)
+2026-04-06 14:56:34 - CampusAutoLogin - DEBUG - 等待系统启动... (0/30秒)
+2026-04-06 14:56:34 - CampusAutoLogin - DEBUG - 等待系统启动... (0/30秒)
+2026-04-06 14:56:44 - CampusAutoLogin - DEBUG - 等待系统启动... (10/30秒)
+2026-04-06 14:56:44 - CampusAutoLogin - DEBUG - 等待系统启动... (10/30秒)
+2026-04-06 14:56:54 - CampusAutoLogin - DEBUG - 等待系统启动... (20/30秒)
+2026-04-06 14:56:54 - CampusAutoLogin - DEBUG - 等待系统启动... (20/30秒)
+2026-04-06 14:57:04 - CampusAutoLogin - INFO - 系统启动等待完成
+2026-04-06 14:57:04 - CampusAutoLogin - INFO - 系统启动等待完成
+2026-04-06 14:57:04 - CampusAutoLogin - INFO - 开始 关闭浏览器窗口
+2026-04-06 14:57:04 - CampusAutoLogin - INFO - 开始 关闭浏览器窗口
+2026-04-06 14:57:04 - CampusAutoLogin - INFO - 未找到校园网登录网页
+2026-04-06 14:57:04 - CampusAutoLogin - INFO - 未找到校园网登录网页
+2026-04-06 14:57:04 - CampusAutoLogin - INFO - 结束 关闭浏览器窗口 - 成功 (closed=0)
+2026-04-06 14:57:04 - CampusAutoLogin - INFO - 结束 关闭浏览器窗口 - 成功 (closed=0)
+2026-04-06 14:57:04 - CampusAutoLogin - INFO - 开始 检查网络状态
+2026-04-06 14:57:04 - CampusAutoLogin - INFO - 开始 检查网络状态
+2026-04-06 14:57:15 - CampusAutoLogin - INFO - 结束 检查网络状态 - 成功 (status=healthy, needs_repair=False, reason=网络正常，无需修复)
+2026-04-06 14:57:15 - CampusAutoLogin - INFO - 结束 检查网络状态 - 成功 (status=healthy, needs_repair=False, reason=网络正常，无需修复)
+2026-04-06 14:57:15 - CampusAutoLogin - INFO - 网络正常，尝试登录
+2026-04-06 14:57:15 - CampusAutoLogin - INFO - 网络正常，尝试登录
+2026-04-06 14:57:15 - CampusAutoLogin - INFO - 开始 执行登录操作
+2026-04-06 14:57:15 - CampusAutoLogin - INFO - 开始 执行登录操作
+2026-04-06 15:14:10 - CampusAutoLogin - INFO - 日志系统初始化完成，日志级别: INFO
+2026-04-06 15:14:10 - CampusAutoLogin - INFO - 日志系统初始化完成，日志级别: INFO
+2026-04-06 15:14:10 - CampusAutoLogin - INFO - 日志文件: logs\campus_auto_login_2026-04-06.log
+2026-04-06 15:14:10 - CampusAutoLogin - INFO - 日志文件: logs\campus_auto_login_2026-04-06.log
+2026-04-06 15:14:10 - CampusAutoLogin - INFO - 主控制器初始化完成
+2026-04-06 15:14:10 - CampusAutoLogin - INFO - 主控制器初始化完成
+2026-04-06 15:14:10 - CampusAutoLogin - INFO - 调试模式已启用
+2026-04-06 15:14:10 - CampusAutoLogin - INFO - 调试模式已启用
+2026-04-06 15:14:10 - CampusAutoLogin - INFO - ==================================================
+2026-04-06 15:14:10 - CampusAutoLogin - INFO - ==================================================
+2026-04-06 15:14:10 - CampusAutoLogin - INFO - 开始校园网自动登录工作流程
+2026-04-06 15:14:10 - CampusAutoLogin - INFO - 开始校园网自动登录工作流程
+2026-04-06 15:14:10 - CampusAutoLogin - INFO - ==================================================
+2026-04-06 15:14:10 - CampusAutoLogin - INFO - ==================================================
+2026-04-06 15:14:10 - CampusAutoLogin - INFO - 等待系统启动完成 (30秒)
+2026-04-06 15:14:10 - CampusAutoLogin - INFO - 等待系统启动完成 (30秒)
+2026-04-06 15:14:10 - CampusAutoLogin - DEBUG - 等待系统启动... (0/30秒)
+2026-04-06 15:14:10 - CampusAutoLogin - DEBUG - 等待系统启动... (0/30秒)
+2026-04-06 15:14:20 - CampusAutoLogin - DEBUG - 等待系统启动... (10/30秒)
+2026-04-06 15:14:20 - CampusAutoLogin - DEBUG - 等待系统启动... (10/30秒)
+2026-04-06 15:14:30 - CampusAutoLogin - DEBUG - 等待系统启动... (20/30秒)
+2026-04-06 15:14:30 - CampusAutoLogin - DEBUG - 等待系统启动... (20/30秒)
+2026-04-06 15:14:40 - CampusAutoLogin - INFO - 系统启动等待完成
+2026-04-06 15:14:40 - CampusAutoLogin - INFO - 系统启动等待完成
+2026-04-06 15:14:40 - CampusAutoLogin - INFO - 开始 关闭浏览器窗口
+2026-04-06 15:14:40 - CampusAutoLogin - INFO - 开始 关闭浏览器窗口
+2026-04-06 15:14:40 - CampusAutoLogin - INFO - 未找到校园网登录网页
+2026-04-06 15:14:40 - CampusAutoLogin - INFO - 未找到校园网登录网页
+2026-04-06 15:14:40 - CampusAutoLogin - INFO - 结束 关闭浏览器窗口 - 成功 (closed=0)
+2026-04-06 15:14:40 - CampusAutoLogin - INFO - 结束 关闭浏览器窗口 - 成功 (closed=0)
+2026-04-06 15:14:40 - CampusAutoLogin - INFO - 开始 检查网络状态
+2026-04-06 15:14:40 - CampusAutoLogin - INFO - 开始 检查网络状态
+2026-04-06 15:14:51 - CampusAutoLogin - INFO - 结束 检查网络状态 - 成功 (status=healthy, needs_repair=False, reason=网络正常，无需修复)
+2026-04-06 15:14:51 - CampusAutoLogin - INFO - 结束 检查网络状态 - 成功 (status=healthy, needs_repair=False, reason=网络正常，无需修复)
+2026-04-06 15:14:51 - CampusAutoLogin - INFO - 网络正常，尝试登录
+2026-04-06 15:14:51 - CampusAutoLogin - INFO - 网络正常，尝试登录
+2026-04-06 15:14:51 - CampusAutoLogin - INFO - 开始 执行登录操作
+2026-04-06 15:14:51 - CampusAutoLogin - INFO - 开始 执行登录操作
+2026-04-06 15:16:14 - CampusAutoLogin - WARNING - 结束 执行登录操作 - 失败 (username=506659, attempts=3, success=False)
+2026-04-06 15:16:14 - CampusAutoLogin - WARNING - 结束 执行登录操作 - 失败 (username=506659, attempts=3, success=False)
+2026-04-06 15:16:14 - CampusAutoLogin - WARNING - 校园网登录: 经过 3 次尝试后登录失败
+2026-04-06 15:16:14 - CampusAutoLogin - WARNING - 校园网登录: 经过 3 次尝试后登录失败
+2026-04-06 15:16:14 - CampusAutoLogin - DEBUG - 通知系统不可用，跳过通知: 校园网自动登录工具 - 警告 - 校园网登录
+经过 3 次尝试后登录失败
+2026-04-06 15:16:14 - CampusAutoLogin - DEBUG - 通知系统不可用，跳过通知: 校园网自动登录工具 - 警告 - 校园网登录
+经过 3 次尝试后登录失败
+2026-04-06 15:16:14 - CampusAutoLogin - INFO - ==================================================
+2026-04-06 15:16:14 - CampusAutoLogin - INFO - ==================================================
+2026-04-06 15:16:14 - CampusAutoLogin - INFO - 工作流程完成，总耗时: 123.40秒
+2026-04-06 15:16:14 - CampusAutoLogin - INFO - 工作流程完成，总耗时: 123.40秒
+2026-04-06 15:16:14 - CampusAutoLogin - INFO - 最终结果: 失败
+2026-04-06 15:16:14 - CampusAutoLogin - INFO - 最终结果: 失败
+2026-04-06 15:16:14 - CampusAutoLogin - INFO - 最终消息: 经过 3 次尝试后登录失败
+2026-04-06 15:16:14 - CampusAutoLogin - INFO - 最终消息: 经过 3 次尝试后登录失败
+2026-04-06 15:16:14 - CampusAutoLogin - INFO - ==================================================
+2026-04-06 15:16:14 - CampusAutoLogin - INFO - ==================================================
+2026-04-06 15:16:14 - CampusAutoLogin - WARNING - 校园网自动登录: 登录失败: 经过 3 次尝试后登录失败
+2026-04-06 15:16:14 - CampusAutoLogin - WARNING - 校园网自动登录: 登录失败: 经过 3 次尝试后登录失败
+2026-04-06 15:16:14 - CampusAutoLogin - DEBUG - 通知系统不可用，跳过通知: 校园网自动登录工具 - 警告 - 校园网自动登录
+登录失败: 经过 3 次尝试后登录失败
+2026-04-06 15:16:14 - CampusAutoLogin - DEBUG - 通知系统不可用，跳过通知: 校园网自动登录工具 - 警告 - 校园网自动登录
+登录失败: 经过 3 次尝试后登录失败
+2026-04-06 15:30:06 - CampusAutoLogin - INFO - 日志系统初始化完成，日志级别: INFO
+2026-04-06 15:30:06 - CampusAutoLogin - INFO - 日志系统初始化完成，日志级别: INFO
+2026-04-06 15:30:06 - CampusAutoLogin - INFO - 日志文件: logs\campus_auto_login_2026-04-06.log
+2026-04-06 15:30:06 - CampusAutoLogin - INFO - 日志文件: logs\campus_auto_login_2026-04-06.log
+2026-04-06 15:30:06 - CampusAutoLogin - INFO - 主控制器初始化完成
+2026-04-06 15:30:06 - CampusAutoLogin - INFO - 主控制器初始化完成
+2026-04-06 15:30:06 - CampusAutoLogin - INFO - 调试模式已启用
+2026-04-06 15:30:06 - CampusAutoLogin - INFO - 调试模式已启用
+2026-04-06 15:30:06 - CampusAutoLogin - INFO - ==================================================
+2026-04-06 15:30:06 - CampusAutoLogin - INFO - ==================================================
+2026-04-06 15:30:06 - CampusAutoLogin - INFO - 开始校园网自动登录工作流程
+2026-04-06 15:30:06 - CampusAutoLogin - INFO - 开始校园网自动登录工作流程
+2026-04-06 15:30:06 - CampusAutoLogin - INFO - ==================================================
+2026-04-06 15:30:06 - CampusAutoLogin - INFO - ==================================================
+2026-04-06 15:30:06 - CampusAutoLogin - INFO - 等待系统启动完成 (30秒)
+2026-04-06 15:30:06 - CampusAutoLogin - INFO - 等待系统启动完成 (30秒)
+2026-04-06 15:30:06 - CampusAutoLogin - DEBUG - 等待系统启动... (0/30秒)
+2026-04-06 15:30:06 - CampusAutoLogin - DEBUG - 等待系统启动... (0/30秒)
+2026-04-06 15:30:16 - CampusAutoLogin - DEBUG - 等待系统启动... (10/30秒)
+2026-04-06 15:30:16 - CampusAutoLogin - DEBUG - 等待系统启动... (10/30秒)
+2026-04-06 15:30:26 - CampusAutoLogin - DEBUG - 等待系统启动... (20/30秒)
+2026-04-06 15:30:26 - CampusAutoLogin - DEBUG - 等待系统启动... (20/30秒)
+2026-04-06 15:30:36 - CampusAutoLogin - INFO - 系统启动等待完成
+2026-04-06 15:30:36 - CampusAutoLogin - INFO - 系统启动等待完成
+2026-04-06 15:30:36 - CampusAutoLogin - INFO - 开始 关闭浏览器窗口
+2026-04-06 15:30:36 - CampusAutoLogin - INFO - 开始 关闭浏览器窗口
+2026-04-06 15:30:36 - CampusAutoLogin - INFO - 未找到校园网登录网页
+2026-04-06 15:30:36 - CampusAutoLogin - INFO - 未找到校园网登录网页
+2026-04-06 15:30:36 - CampusAutoLogin - INFO - 结束 关闭浏览器窗口 - 成功 (closed=0)
+2026-04-06 15:30:36 - CampusAutoLogin - INFO - 结束 关闭浏览器窗口 - 成功 (closed=0)
+2026-04-06 15:30:36 - CampusAutoLogin - INFO - 开始 检查网络状态
+2026-04-06 15:30:36 - CampusAutoLogin - INFO - 开始 检查网络状态
+2026-04-06 15:30:46 - CampusAutoLogin - INFO - 结束 检查网络状态 - 成功 (status=healthy, needs_repair=False, reason=网络正常，无需修复)
+2026-04-06 15:30:46 - CampusAutoLogin - INFO - 结束 检查网络状态 - 成功 (status=healthy, needs_repair=False, reason=网络正常，无需修复)
+2026-04-06 15:30:46 - CampusAutoLogin - INFO - 网络正常，尝试登录
+2026-04-06 15:30:46 - CampusAutoLogin - INFO - 网络正常，尝试登录
+2026-04-06 15:30:46 - CampusAutoLogin - INFO - 开始 执行登录操作
+2026-04-06 15:30:46 - CampusAutoLogin - INFO - 开始 执行登录操作

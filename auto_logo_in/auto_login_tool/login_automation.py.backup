@@ -1,0 +1,746 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Dr.COM客户端自动化模块
+启动Dr.COM客户端，检测登录状态，模拟GUI操作输入账号密码
+"""
+
+import os
+import sys
+import time
+import logging
+import subprocess
+from typing import Dict, List, Optional, Tuple
+from pathlib import Path
+
+# 尝试导入GUI自动化库
+try:
+    import pywinauto
+    from pywinauto import Application, findwindows
+    from pywinauto.keyboard import send_keys
+    from pywinauto.findwindows import ElementNotFoundError
+    PYWINAUTO_AVAILABLE = True
+except ImportError:
+    PYWINAUTO_AVAILABLE = False
+    logging.warning("pywinauto库未安装，Dr.COM自动化功能受限")
+
+try:
+    import pyautogui
+    PYAUTOGUI_AVAILABLE = True
+except ImportError:
+    PYAUTOGUI_AVAILABLE = False
+    logging.warning("pyautogui库未安装，备用自动化功能受限")
+
+try:
+    import psutil
+    PSUTIL_AVAILABLE = True
+except ImportError:
+    PSUTIL_AVAILABLE = False
+    logging.warning("psutil库未安装，进程管理功能受限")
+
+
+class DrComAutomator:
+    """Dr.COM客户端自动化器类"""
+    
+    def __init__(self, config_manager=None):
+        """
+        初始化Dr.COM自动化器
+        
+        Args:
+            config_manager: 配置管理器实例
+        """
+        self.config = config_manager
+        self.logger = logging.getLogger(__name__)
+        
+        # Dr.COM客户端相关信息
+        self.client_name = "Dr.COM宽带认证客户端"
+        self.process_names = ["DrClient.exe", "DrMain.exe", "DrUpdate.exe"]  # 多个可能的进程名
+
+        # 窗口标题关键词 - 根据实际检测到的窗口标题
+        self.window_titles = [
+            "网络选择",               # 实际检测到的第一个界面
+            "Dr.COM 宽带认证客户端",  # 实际检测到的标题（有空格）
+            "Dr.COM宽带认证客户端",   # 无空格版本
+            "Dr.COM",
+            "宽带认证客户端",
+            "DrClient",
+            "DrMain",
+            "DrUpdate",
+            "Dr.COM客户端",
+            "宽带认证",
+            "校园网认证",
+            "上网认证",
+            "DrMain.exe",
+            "DrUpdate.exe",
+            "Dr.COM 宽带认证",        # 可能变体
+            "Dr.COM认证客户端",
+        ]
+        
+        # 控件识别信息（可能需要根据实际客户端调整）
+        self.control_identifiers = {
+            'username': ['用户名', '账号', '用户', 'user', 'account'],
+            'password': ['密码', '口令', 'pass', 'pwd'],
+            'login_button': ['登录', '登陆', 'connect', 'login'],
+            'logout_button': ['注销', '登出', 'disconnect', 'logout'],
+            'status_text': ['状态', 'status', '连接状态'],
+        }
+        
+        # 加载配置
+        self._load_config()
+        
+        # 应用程序连接
+        self.app = None
+        self.window = None
+    
+    def _load_config(self):
+        """从配置加载设置"""
+        if self.config:
+            self.drcom_path = Path(self.config.get('paths', 'drcom_path', 
+                                                 r'C:\Users\luo\Desktop\APP\DrClient.exe'))
+            self.retry_count = self.config.get('settings', 'retry_count', 3)
+            self.retry_interval = self.config.get('settings', 'retry_interval', 10)
+        else:
+            self.drcom_path = Path(r'C:\Users\luo\Desktop\APP\DrClient.exe')
+            self.retry_count = 3
+            self.retry_interval = 10
+        
+        self.logger.debug(f"Dr.COM路径: {self.drcom_path}")
+        self.logger.debug(f"重试次数: {self.retry_count}")
+        self.logger.debug(f"重试间隔: {self.retry_interval}秒")
+    
+    def start_client(self) -> bool:
+        """
+        启动Dr.COM客户端
+        
+        Returns:
+            bool: 是否成功启动
+        """
+        self.logger.info("启动Dr.COM客户端")
+        
+        # 检查客户端是否已在运行
+        if self.is_client_running():
+            self.logger.info("Dr.COM客户端已在运行")
+            return True
+        
+        # 检查客户端路径是否存在
+        if not self.drcom_path.exists():
+            self.logger.error(f"Dr.COM客户端路径不存在: {self.drcom_path}")
+            return False
+        
+        try:
+            # 启动客户端
+            subprocess.Popen(
+                [str(self.drcom_path)],
+                creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
+            )
+            
+            self.logger.info(f"已启动Dr.COM客户端: {self.drcom_path}")
+            
+            # 等待客户端启动
+            time.sleep(5)
+            
+            # 尝试连接应用程序
+            if self._connect_to_client():
+                self.logger.info("成功连接到Dr.COM客户端")
+                return True
+            else:
+                self.logger.warning("启动客户端但未能连接，可能仍在启动中")
+                return True
+                
+        except Exception as e:
+            self.logger.error(f"启动Dr.COM客户端失败: {e}")
+            return False
+    
+    def _connect_to_client(self) -> bool:
+        """
+        连接到Dr.COM客户端应用程序
+        
+        Returns:
+            bool: 是否成功连接
+        """
+        if not PYWINAUTO_AVAILABLE:
+            return False
+        
+        try:
+            # 方法1: 尝试通过进程名连接（使用process参数）
+            for process_name in self.process_names:
+                try:
+                    self.app = Application().connect(process=process_name)
+                    self.logger.debug(f"通过进程名连接到Dr.COM客户端: {process_name}")
+                    return True
+                except Exception as e:
+                    self.logger.debug(f"通过进程名 {process_name} 连接失败: {e}")
+                    continue
+            
+            # 方法2: 尝试通过窗口标题连接
+            for title in self.window_titles:
+                try:
+                    self.app = Application().connect(title=title)
+                    self.logger.debug(f"通过窗口标题连接到Dr.COM客户端: {title}")
+                    return True
+                except Exception as e:
+                    self.logger.debug(f"通过窗口标题 {title} 连接失败: {e}")
+                    continue
+            
+            # 方法3: 尝试通过窗口标题正则表达式连接
+            try:
+                self.app = Application().connect(title_re=".*Dr.*COM.*|.*宽带.*认证.*")
+                self.logger.debug("通过正则表达式连接到Dr.COM客户端")
+                return True
+            except Exception as e:
+                self.logger.debug(f"通过正则表达式连接失败: {e}")
+            
+            # 方法4: 使用Windows API获取窗口句柄直接连接
+            try:
+                import ctypes
+                from ctypes import wintypes
+                
+                EnumWindows = ctypes.windll.user32.EnumWindows
+                EnumWindowsProc = ctypes.WINFUNCTYPE(ctypes.c_bool, ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_int))
+                GetWindowText = ctypes.windll.user32.GetWindowTextW
+                GetWindowTextLength = ctypes.windll.user32.GetWindowTextLengthW
+                
+                def foreach_window(hwnd, lParam):
+                    length = GetWindowTextLength(hwnd)
+                    buff = ctypes.create_unicode_buffer(length + 1)
+                    GetWindowText(hwnd, buff, length + 1)
+                    if buff.value and any(keyword in buff.value for keyword in ['Dr', 'COM', '宽带', '认证']):
+                        # 尝试连接这个窗口
+                        try:
+                            self.app = Application().connect(handle=hwnd)
+                            self.logger.debug(f"通过Windows API窗口句柄连接到Dr.COM客户端: {buff.value}")
+                            return False  # 停止枚举
+                        except:
+                            pass
+                    return True  # 继续枚举
+                
+                # 枚举窗口
+                EnumWindows(EnumWindowsProc(foreach_window), 0)
+                
+                # 如果连接成功，app应该已经被设置
+                if self.app:
+                    return True
+                    
+            except Exception as e:
+                self.logger.debug(f"通过Windows API连接失败: {e}")
+            
+            # 方法5: 尝试使用不同的backend (win32 vs uia)
+            try:
+                self.app = Application(backend='win32').connect(title_re=".*Dr.*COM.*")
+                self.logger.debug("通过win32 backend连接到Dr.COM客户端")
+                return True
+            except Exception as e:
+                self.logger.debug(f"通过win32 backend连接失败: {e}")
+            
+            # 如果都没成功，返回False
+            self.logger.warning("无法连接到Dr.COM客户端，所有连接方法都失败")
+            return False
+                
+        except Exception as e:
+            self.logger.debug(f"连接Dr.COM客户端时出错: {e}")
+            return False
+    
+    def is_client_running(self) -> bool:
+        """
+        检查Dr.COM客户端是否在运行
+        
+        Returns:
+            bool: 是否在运行
+        """
+        if PSUTIL_AVAILABLE:
+            # 使用psutil检查多个可能的进程
+            for proc in psutil.process_iter(['name']):
+                try:
+                    if proc.info['name']:
+                        proc_name = proc.info['name'].lower()
+                        # 检查是否匹配任何一个进程名
+                        for target_name in self.process_names:
+                            if target_name.lower() in proc_name:
+                                return True
+                except (psutil.NoSuchProcess, psutil.AccessDenied):
+                    continue
+        
+        # 使用pywinauto检查窗口
+        if PYWINAUTO_AVAILABLE:
+            try:
+                # 使用更宽松的正则表达式匹配窗口标题
+                windows = findwindows.find_windows(title_re=".*Dr.*|.*COM.*|.*宽带.*|.*认证.*|.*客户端.*")
+                return len(windows) > 0
+            except:
+                pass
+        
+        return False
+    
+    def find_client_window(self) -> Optional[any]:
+        """
+        查找Dr.COM客户端窗口
+        
+        Returns:
+            Optional[any]: 窗口对象，未找到返回None
+        """
+        if not PYWINAUTO_AVAILABLE:
+            return None
+        
+        try:
+            # 首先尝试使用现有的app连接
+            if self.app:
+                try:
+                    self.window = self.app.window()
+                    if self.window.exists():
+                        return self.window
+                except:
+                    pass
+            
+            # 尝试重新连接
+            if self._connect_to_client():
+                self.window = self.app.window()
+                return self.window
+            
+            # 如果连接失败，尝试直接查找窗口
+            for title in self.window_titles:
+                try:
+                    self.app = Application().connect(title=title)
+                    self.window = self.app.window()
+                    return self.window
+                except:
+                    continue
+            
+            return None
+            
+        except Exception as e:
+            self.logger.debug(f"查找客户端窗口失败: {e}")
+            return None
+    
+    def is_logged_in(self) -> Tuple[bool, str]:
+        """
+        检查登录状态
+        
+        Returns:
+            Tuple[bool, str]: (是否已登录, 状态描述)
+        """
+        self.logger.info("检查Dr.COM登录状态")
+        
+        # 方法1: 检查网络状态（如果网络正常，可能已登录）
+        # 这个方法不准确，但可以作为参考
+        
+        # 方法2: 检查客户端窗口状态
+        window = self.find_client_window()
+        if not window:
+            return False, "未找到Dr.COM客户端窗口"
+        
+        try:
+            # 获取窗口标题
+            title = window.window_text()
+            self.logger.debug(f"窗口标题: {title}")
+            
+            # 分析标题判断登录状态
+            # 常见的登录状态关键词
+            logged_in_keywords = ['已连接', '已登录', 'connected', '在线', '成功']
+            logged_out_keywords = ['未连接', '未登录', '断开', 'disconnected', '离线']
+            
+            title_lower = title.lower()
+            
+            for keyword in logged_in_keywords:
+                if keyword in title_lower:
+                    return True, f"检测到登录状态: {title}"
+            
+            for keyword in logged_out_keywords:
+                if keyword in title_lower:
+                    return False, f"检测到未登录状态: {title}"
+            
+            # 方法3: 尝试查找登录按钮
+            # 如果找到登录按钮且可用，可能未登录
+            try:
+                login_button = self._find_control('login_button')
+                if login_button and login_button.is_enabled():
+                    return False, "找到可用的登录按钮，可能未登录"
+            except:
+                pass
+            
+            # 方法4: 尝试查找注销按钮
+            # 如果找到注销按钮且可用，可能已登录
+            try:
+                logout_button = self._find_control('logout_button')
+                if logout_button and logout_button.is_enabled():
+                    return True, "找到可用的注销按钮，可能已登录"
+            except:
+                pass
+            
+            # 无法确定状态
+            return False, "无法确定登录状态"
+            
+        except Exception as e:
+            self.logger.error(f"检查登录状态时出错: {e}")
+            return False, f"检查状态时出错: {e}"
+    
+    def _find_control(self, control_type: str) -> Optional[any]:
+        """
+        查找指定类型的控件
+        
+        Args:
+            control_type: 控件类型 ('username', 'password', 'login_button', etc.)
+            
+        Returns:
+            Optional[any]: 控件对象，未找到返回None
+        """
+        if not PYWINAUTO_AVAILABLE or not self.window:
+            return None
+        
+        try:
+            # 获取所有控件
+            controls = self.window.descendants()
+            
+            # 查找匹配的控件
+            for control in controls:
+                try:
+                    control_text = control.window_text().lower()
+                    
+                    # 检查控件文本是否包含关键词
+                    for keyword in self.control_identifiers.get(control_type, []):
+                        if keyword.lower() in control_text:
+                            return control
+                except:
+                    continue
+            
+            return None
+            
+        except Exception as e:
+            self.logger.debug(f"查找控件失败 ({control_type}): {e}")
+            return None
+    
+    def perform_login(self, username: str, password: str) -> Tuple[bool, str]:
+        """
+        执行登录操作
+        
+        Args:
+            username: 用户名
+            password: 密码
+            
+        Returns:
+            Tuple[bool, str]: (是否成功, 状态信息)
+        """
+        self.logger.info("执行Dr.COM登录操作")
+        
+        # 确保客户端在运行
+        if not self.is_client_running():
+            self.logger.warning("Dr.COM客户端未运行，尝试启动")
+            if not self.start_client():
+                return False, "无法启动Dr.COM客户端"
+        
+        # 查找窗口
+        window = self.find_client_window()
+        if not window:
+            return False, "未找到Dr.COM客户端窗口"
+        
+        # 激活窗口
+        try:
+            window.set_focus()
+            time.sleep(1)
+        except Exception as e:
+            self.logger.warning(f"激活窗口失败: {e}")
+        
+        # 尝试多种登录方法
+        methods = [
+            self._login_method_direct_controls,
+            self._login_method_tab_navigation,
+            self._login_method_image_recognition,
+            self._login_method_coordinates,
+        ]
+        
+        for method_idx, method in enumerate(methods):
+            self.logger.debug(f"尝试登录方法 #{method_idx + 1}")
+            
+            try:
+                success, message = method(username, password)
+                if success:
+                    self.logger.info(f"登录方法 #{method_idx + 1} 成功: {message}")
+                    
+                    # 验证登录是否成功
+                    time.sleep(3)
+                    logged_in, status_msg = self.is_logged_in()
+                    
+                    if logged_in:
+                        return True, f"登录成功: {message}. {status_msg}"
+                    else:
+                        self.logger.warning(f"登录操作成功但状态显示未登录: {status_msg}")
+                        # 继续尝试其他方法
+                        
+            except Exception as e:
+                self.logger.debug(f"登录方法 #{method_idx + 1} 失败: {e}")
+                continue
+        
+        return False, "所有登录方法均失败"
+    
+    def _login_method_direct_controls(self, username: str, password: str) -> Tuple[bool, str]:
+        """方法1: 直接查找并操作控件"""
+        if not PYWINAUTO_AVAILABLE:
+            return False, "pywinauto不可用"
+        
+        try:
+            # 查找用户名输入框
+            username_control = self._find_control('username')
+            if not username_control:
+                return False, "未找到用户名输入框"
+            
+            # 查找密码输入框
+            password_control = self._find_control('password')
+            if not password_control:
+                return False, "未找到密码输入框"
+            
+            # 查找登录按钮
+            login_button = self._find_control('login_button')
+            if not login_button:
+                return False, "未找到登录按钮"
+            
+            # 输入用户名
+            username_control.set_focus()
+            username_control.set_text('')  # 清空原有内容
+            username_control.type_keys(username)
+            time.sleep(0.5)
+            
+            # 输入密码
+            password_control.set_focus()
+            password_control.set_text('')  # 清空原有内容
+            password_control.type_keys(password)
+            time.sleep(0.5)
+            
+            # 点击登录按钮
+            login_button.click()
+            
+            return True, "通过直接控件操作完成登录"
+            
+        except Exception as e:
+            return False, f"直接控件操作失败: {e}"
+    
+    def _login_method_tab_navigation(self, username: str, password: str) -> Tuple[bool, str]:
+        """方法2: 使用Tab键导航"""
+        if not PYAUTOGUI_AVAILABLE:
+            return False, "pyautogui不可用"
+        
+        try:
+            # 确保窗口激活
+            if self.window:
+                self.window.set_focus()
+            time.sleep(0.5)
+            
+            # 模拟Tab键导航到用户名输入框
+            # 假设当前焦点在用户名输入框，或者需要按Tab若干次
+            # 这里使用简单策略：先点击窗口中间位置，然后Tab导航
+            
+            # 点击窗口激活
+            pyautogui.click(button='left')
+            time.sleep(0.5)
+            
+            # 输入用户名
+            pyautogui.write(username)
+            time.sleep(0.5)
+            
+            # Tab到密码框
+            pyautogui.press('tab')
+            time.sleep(0.5)
+            
+            # 输入密码
+            pyautogui.write(password)
+            time.sleep(0.5)
+            
+            # Tab到登录按钮并回车（假设Tab两次）
+            pyautogui.press('tab')
+            time.sleep(0.2)
+            pyautogui.press('tab')
+            time.sleep(0.2)
+            pyautogui.press('enter')
+            
+            return True, "通过Tab导航完成登录"
+            
+        except Exception as e:
+            return False, f"Tab导航失败: {e}"
+    
+    def _login_method_image_recognition(self, username: str, password: str) -> Tuple[bool, str]:
+        """方法3: 使用图像识别（备用方法）"""
+        # 这个方法需要预先截取Dr.COM客户端的截图
+        # 由于实现复杂，这里只提供框架
+        return False, "图像识别方法未实现（需要预先截图）"
+    
+    def _login_method_coordinates(self, username: str, password: str) -> Tuple[bool, str]:
+        """方法4: 使用固定坐标（最后手段）"""
+        if not PYAUTOGUI_AVAILABLE:
+            return False, "pyautogui不可用"
+        
+        try:
+            # 这是最后的手段，使用预先确定的坐标
+            # 需要用户手动确定坐标或通过配置提供
+            
+            # 示例坐标（需要根据实际屏幕调整）
+            # 这里使用相对坐标，点击窗口后偏移
+            username_coords = (100, 100)  # 相对于窗口
+            password_coords = (100, 130)  # 相对于窗口
+            login_coords = (100, 160)     # 相对于窗口
+            
+            # 获取窗口位置
+            if self.window:
+                rect = self.window.rectangle()
+                window_left = rect.left
+                window_top = rect.top
+                
+                # 计算绝对坐标
+                username_abs = (window_left + username_coords[0], window_top + username_coords[1])
+                password_abs = (window_left + password_coords[0], window_top + password_coords[1])
+                login_abs = (window_left + login_coords[0], window_top + login_coords[1])
+                
+                # 点击用户名框并输入
+                pyautogui.click(username_abs[0], username_abs[1])
+                time.sleep(0.5)
+                pyautogui.write(username)
+                time.sleep(0.5)
+                
+                # 点击密码框并输入
+                pyautogui.click(password_abs[0], password_abs[1])
+                time.sleep(0.5)
+                pyautogui.write(password)
+                time.sleep(0.5)
+                
+                # 点击登录按钮
+                pyautogui.click(login_abs[0], login_abs[1])
+                
+                return True, "通过固定坐标完成登录"
+            else:
+                return False, "无法获取窗口位置"
+            
+        except Exception as e:
+            return False, f"固定坐标方法失败: {e}"
+    
+    def logout(self) -> Tuple[bool, str]:
+        """
+        执行登出操作
+        
+        Returns:
+            Tuple[bool, str]: (是否成功, 状态信息)
+        """
+        self.logger.info("执行Dr.COM登出操作")
+        
+        window = self.find_client_window()
+        if not window:
+            return False, "未找到Dr.COM客户端窗口"
+        
+        try:
+            # 查找注销按钮
+            logout_button = self._find_control('logout_button')
+            if logout_button and logout_button.is_enabled():
+                logout_button.click()
+                return True, "已点击注销按钮"
+            else:
+                return False, "未找到可用的注销按钮"
+                
+        except Exception as e:
+            return False, f"登出操作失败: {e}"
+    
+    def login_with_retry(self, username: str, password: str, 
+                        max_retries: Optional[int] = None) -> Tuple[bool, str, int]:
+        """
+        带重试的登录操作
+        
+        Args:
+            username: 用户名
+            password: 密码
+            max_retries: 最大重试次数，None则使用配置值
+            
+        Returns:
+            Tuple[bool, str, int]: (是否成功, 状态信息, 尝试次数)
+        """
+        if max_retries is None:
+            max_retries = self.retry_count
+        
+        self.logger.info(f"开始带重试的登录，最大重试次数: {max_retries}")
+        
+        for attempt in range(1, max_retries + 1):
+            self.logger.info(f"登录尝试 #{attempt}/{max_retries}")
+            
+            # 检查是否已登录
+            logged_in, status_msg = self.is_logged_in()
+            if logged_in:
+                return True, f"尝试 #{attempt}: 已登录 ({status_msg})", attempt
+            
+            # 执行登录
+            success, message = self.perform_login(username, password)
+            
+            if success:
+                # 等待并验证
+                time.sleep(5)
+                logged_in, status_msg = self.is_logged_in()
+                
+                if logged_in:
+                    return True, f"尝试 #{attempt}: 登录成功 ({message}. {status_msg})", attempt
+                else:
+                    self.logger.warning(f"尝试 #{attempt}: 登录操作成功但状态显示未登录")
+            
+            # 记录失败
+            self.logger.warning(f"尝试 #{attempt} 失败: {message}")
+            
+            # 如果不是最后一次尝试，等待后重试
+            if attempt < max_retries:
+                self.logger.info(f"等待 {self.retry_interval} 秒后重试...")
+                time.sleep(self.retry_interval)
+        
+        return False, f"经过 {max_retries} 次尝试后登录失败", max_retries
+
+
+# 测试函数
+def test_drcom_automator():
+    """测试Dr.COM自动化器"""
+    import logging
+    logging.basicConfig(level=logging.DEBUG)
+    
+    automator = DrComAutomator()
+    
+    print("=== Dr.COM客户端自动化测试 ===")
+    
+    # 测试客户端是否运行
+    print("\n1. 测试客户端运行状态:")
+    is_running = automator.is_client_running()
+    print(f"   客户端是否运行: {is_running}")
+    
+    if not is_running:
+        # 测试启动客户端
+        print("\n2. 测试启动客户端:")
+        success = automator.start_client()
+        print(f"   启动成功: {success}")
+        
+        if success:
+            # 等待客户端启动
+            time.sleep(5)
+    
+    # 测试查找窗口
+    print("\n3. 测试查找窗口:")
+    window = automator.find_client_window()
+    if window:
+        print(f"   找到窗口: {window.window_text()}")
+    else:
+        print("   未找到窗口")
+    
+    # 测试检查登录状态
+    print("\n4. 测试检查登录状态:")
+    logged_in, status_msg = automator.is_logged_in()
+    print(f"   是否已登录: {logged_in}")
+    print(f"   状态信息: {status_msg}")
+    
+    # 测试登录（需要实际账号密码）
+    print("\n5. 测试登录（模拟）:")
+    # 这里使用测试账号密码，实际使用时从配置获取
+    test_username = "test_user"
+    test_password = "test_pass"
+    
+    # 注意：这里不会实际登录，只是演示流程
+    success, message = automator.perform_login(test_username, test_password)
+    print(f"   登录成功: {success}")
+    print(f"   登录消息: {message}")
+    
+    # 测试带重试的登录
+    print("\n6. 测试带重试的登录（模拟）:")
+    success, message, attempts = automator.login_with_retry(test_username, test_password, max_retries=2)
+    print(f"   最终成功: {success}")
+    print(f"   最终消息: {message}")
+    print(f"   尝试次数: {attempts}")
+
+
+if __name__ == "__main__":
+    test_drcom_automator()

@@ -1,0 +1,603 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+网络检测模块
+检测网络连通性、VPN残留问题，判断是否需要修复
+"""
+
+import os
+import sys
+import time
+import socket
+import logging
+import subprocess
+import platform
+from typing import Dict, List, Optional, Tuple
+from pathlib import Path
+
+# 尝试导入网络检测库
+try:
+    import requests
+    REQUESTS_AVAILABLE = True
+except ImportError:
+    REQUESTS_AVAILABLE = False
+    logging.warning("requests库未安装，HTTP检测功能受限")
+
+try:
+    import ping3
+    PING3_AVAILABLE = True
+except ImportError:
+    PING3_AVAILABLE = False
+    logging.warning("ping3库未安装，Ping检测功能受限")
+
+try:
+    import psutil
+    PSUTIL_AVAILABLE = True
+except ImportError:
+    PSUTIL_AVAILABLE = False
+    logging.warning("psutil库未安装，网络适配器检测功能受限")
+
+
+class NetworkMonitor:
+    """网络监控器类"""
+    
+    def __init__(self, config_manager=None):
+        """
+        初始化网络监控器
+        
+        Args:
+            config_manager: 配置管理器实例
+        """
+        self.config = config_manager
+        self.logger = logging.getLogger(__name__)
+        
+        # 网络检测目标
+        self.ping_targets = [
+            '8.8.8.8',           # Google DNS
+            '1.1.1.1',           # Cloudflare DNS
+            '114.114.114.114',   # 国内DNS
+            '223.5.5.5',         # 阿里DNS
+        ]
+        
+        self.http_targets = [
+            'http://connectivitycheck.gstatic.com/generate_204',
+            'http://www.baidu.com',
+            'http://www.qq.com',
+        ]
+        
+        # VPN相关进程和适配器
+        self.vpn_processes = [
+            'clash.exe', 'v2ray.exe', 'shadowsocks.exe', 'openvpn.exe',
+            'wireguard.exe', 'zerotier.exe', 'tailscale.exe',
+            'fclash.exe', 'qv2ray.exe', 'v2rayn.exe'
+        ]
+        
+        self.vpn_adapters = [
+            'tap', 'tun', 'wireguard', 'zerotier', 'tailscale',
+            'openvpn', 'softether', 'pptp', 'l2tp', 'ipsec'
+        ]
+        
+        # 加载配置
+        self._load_config()
+    
+    def _load_config(self):
+        """从配置加载设置"""
+        if self.config:
+            self.network_timeout = self.config.get('settings', 'network_timeout', 10)
+        else:
+            self.network_timeout = 10
+        
+        self.logger.debug(f"网络检测超时: {self.network_timeout}秒")
+    
+    def check_internet(self, method: str = 'auto') -> Dict[str, any]:
+        """
+        检测互联网连通性
+        
+        Args:
+            method: 检测方法 ('ping', 'http', 'auto')
+            
+        Returns:
+            Dict[str, any]: 检测结果
+        """
+        self.logger.info("开始检测互联网连通性")
+        
+        if method == 'auto':
+            # 自动选择最佳方法
+            if PING3_AVAILABLE:
+                result = self._check_by_ping()
+                if result['success']:
+                    return result
+            
+            if REQUESTS_AVAILABLE:
+                result = self._check_by_http()
+                if result['success']:
+                    return result
+            
+            # 如果以上都失败，尝试系统ping
+            result = self._check_by_system_ping()
+            return result
+            
+        elif method == 'ping':
+            if PING3_AVAILABLE:
+                return self._check_by_ping()
+            else:
+                return self._check_by_system_ping()
+                
+        elif method == 'http':
+            if REQUESTS_AVAILABLE:
+                return self._check_by_http()
+            else:
+                return {
+                    'success': False,
+                    'method': 'http',
+                    'error': 'requests库未安装',
+                    'details': {}
+                }
+        else:
+            return {
+                'success': False,
+                'method': method,
+                'error': '未知的检测方法',
+                'details': {}
+            }
+    
+    def _check_by_ping(self) -> Dict[str, any]:
+        """使用ping3库进行Ping检测"""
+        self.logger.debug("使用ping3进行Ping检测")
+        
+        success_count = 0
+        details = {}
+        
+        for target in self.ping_targets[:2]:  # 只测试前两个目标
+            try:
+                start_time = time.time()
+                delay = ping3.ping(target, timeout=self.network_timeout)
+                elapsed = time.time() - start_time
+                
+                if delay is not None and delay > 0:
+                    success_count += 1
+                    details[target] = {
+                        'success': True,
+                        'delay_ms': round(delay * 1000, 2),
+                        'elapsed_s': round(elapsed, 2)
+                    }
+                    self.logger.debug(f"Ping {target} 成功: {delay*1000:.2f}ms")
+                else:
+                    details[target] = {
+                        'success': False,
+                        'error': '超时或无响应',
+                        'elapsed_s': round(elapsed, 2)
+                    }
+                    self.logger.debug(f"Ping {target} 失败: 超时")
+                    
+            except Exception as e:
+                details[target] = {
+                    'success': False,
+                    'error': str(e),
+                    'elapsed_s': 0
+                }
+                self.logger.debug(f"Ping {target} 异常: {e}")
+        
+        success = success_count > 0
+        return {
+            'success': success,
+            'method': 'ping',
+            'error': None if success else '所有Ping目标均失败',
+            'details': details
+        }
+    
+    def _check_by_system_ping(self) -> Dict[str, any]:
+        """使用系统ping命令进行检测"""
+        self.logger.debug("使用系统Ping命令检测")
+        
+        # 根据系统确定ping参数
+        if platform.system().lower() == 'windows':
+            param = '-n'
+            count = '2'
+        else:
+            param = '-c'
+            count = '2'
+        
+        success_count = 0
+        details = {}
+        
+        for target in self.ping_targets[:2]:
+            try:
+                start_time = time.time()
+                command = ['ping', param, count, '-w', str(self.network_timeout), target]
+                
+                # 执行ping命令
+                result = subprocess.run(
+                    command,
+                    capture_output=True,
+                    text=True,
+                    timeout=self.network_timeout + 2
+                )
+                elapsed = time.time() - start_time
+                
+                if result.returncode == 0:
+                    success_count += 1
+                    details[target] = {
+                        'success': True,
+                        'elapsed_s': round(elapsed, 2),
+                        'output': result.stdout[:200]  # 只保留前200字符
+                    }
+                    self.logger.debug(f"系统Ping {target} 成功")
+                else:
+                    details[target] = {
+                        'success': False,
+                        'error': f'返回码: {result.returncode}',
+                        'elapsed_s': round(elapsed, 2),
+                        'output': result.stderr[:200] if result.stderr else result.stdout[:200]
+                    }
+                    self.logger.debug(f"系统Ping {target} 失败")
+                    
+            except subprocess.TimeoutExpired:
+                details[target] = {
+                    'success': False,
+                    'error': '命令执行超时',
+                    'elapsed_s': self.network_timeout + 2
+                }
+                self.logger.debug(f"系统Ping {target} 超时")
+            except Exception as e:
+                details[target] = {
+                    'success': False,
+                    'error': str(e),
+                    'elapsed_s': 0
+                }
+                self.logger.debug(f"系统Ping {target} 异常: {e}")
+        
+        success = success_count > 0
+        return {
+            'success': success,
+            'method': 'system_ping',
+            'error': None if success else '所有系统Ping均失败',
+            'details': details
+        }
+    
+    def _check_by_http(self) -> Dict[str, any]:
+        """使用HTTP请求进行检测"""
+        self.logger.debug("使用HTTP请求检测")
+        
+        success_count = 0
+        details = {}
+        
+        for url in self.http_targets[:2]:  # 只测试前两个目标
+            try:
+                start_time = time.time()
+                response = requests.get(
+                    url,
+                    timeout=self.network_timeout,
+                    headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
+                )
+                elapsed = time.time() - start_time
+                
+                if response.status_code < 400:  # 2xx或3xx都算成功
+                    success_count += 1
+                    details[url] = {
+                        'success': True,
+                        'status_code': response.status_code,
+                        'elapsed_s': round(elapsed, 2),
+                        'content_length': len(response.content)
+                    }
+                    self.logger.debug(f"HTTP {url} 成功: {response.status_code}")
+                else:
+                    details[url] = {
+                        'success': False,
+                        'error': f'HTTP {response.status_code}',
+                        'elapsed_s': round(elapsed, 2)
+                    }
+                    self.logger.debug(f"HTTP {url} 失败: {response.status_code}")
+                    
+            except requests.exceptions.Timeout:
+                details[url] = {
+                    'success': False,
+                    'error': '请求超时',
+                    'elapsed_s': self.network_timeout
+                }
+                self.logger.debug(f"HTTP {url} 超时")
+            except Exception as e:
+                details[url] = {
+                    'success': False,
+                    'error': str(e),
+                    'elapsed_s': 0
+                }
+                self.logger.debug(f"HTTP {url} 异常: {e}")
+        
+        success = success_count > 0
+        return {
+            'success': success,
+            'method': 'http',
+            'error': None if success else '所有HTTP请求均失败',
+            'details': details
+        }
+    
+    def check_vpn_residue(self) -> Dict[str, any]:
+        """
+        检测VPN残留问题
+        
+        Returns:
+            Dict[str, any]: 检测结果
+        """
+        self.logger.info("开始检测VPN残留问题")
+        
+        result = {
+            'has_vpn_process': False,
+            'has_vpn_adapter': False,
+            'vpn_processes': [],
+            'vpn_adapters': [],
+            'details': {}
+        }
+        
+        # 检测VPN进程
+        if PSUTIL_AVAILABLE:
+            vpn_processes = self._find_vpn_processes()
+            if vpn_processes:
+                result['has_vpn_process'] = True
+                result['vpn_processes'] = vpn_processes
+                self.logger.warning(f"发现VPN进程: {vpn_processes}")
+        
+        # 检测VPN网络适配器
+        vpn_adapters = self._find_vpn_adapters()
+        if vpn_adapters:
+            result['has_vpn_adapter'] = True
+            result['vpn_adapters'] = vpn_adapters
+            self.logger.warning(f"发现VPN网络适配器: {vpn_adapters}")
+        
+        # 检测DNS设置
+        dns_issues = self._check_dns_settings()
+        if dns_issues:
+            result['dns_issues'] = dns_issues
+            self.logger.warning(f"发现DNS问题: {dns_issues}")
+        
+        # 检测路由表
+        route_issues = self._check_routing_table()
+        if route_issues:
+            result['route_issues'] = route_issues
+            self.logger.warning(f"发现路由问题: {route_issues}")
+        
+        result['has_issues'] = any([
+            result['has_vpn_process'],
+            result['has_vpn_adapter'],
+            'dns_issues' in result,
+            'route_issues' in result
+        ])
+        
+        return result
+    
+    def _find_vpn_processes(self) -> List[Dict[str, any]]:
+        """查找VPN相关进程"""
+        vpn_processes = []
+        
+        try:
+            for proc in psutil.process_iter(['pid', 'name', 'exe']):
+                try:
+                    proc_name = proc.info['name'].lower() if proc.info['name'] else ''
+                    
+                    for vpn_keyword in self.vpn_processes:
+                        if vpn_keyword.lower() in proc_name:
+                            vpn_processes.append({
+                                'pid': proc.info['pid'],
+                                'name': proc.info['name'],
+                                'exe': proc.info['exe']
+                            })
+                            break
+                            
+                except (psutil.NoSuchProcess, psutil.AccessDenied):
+                    continue
+                    
+        except Exception as e:
+            self.logger.error(f"查找VPN进程时出错: {e}")
+        
+        return vpn_processes
+    
+    def _find_vpn_adapters(self) -> List[str]:
+        """查找VPN网络适配器"""
+        vpn_adapters = []
+        
+        if not PSUTIL_AVAILABLE:
+            return vpn_adapters
+        
+        try:
+            # 获取网络接口信息
+            addrs = psutil.net_if_addrs()
+            
+            for interface_name, addresses in addrs.items():
+                interface_lower = interface_name.lower()
+                
+                for vpn_keyword in self.vpn_adapters:
+                    if vpn_keyword in interface_lower:
+                        vpn_adapters.append(interface_name)
+                        break
+                        
+        except Exception as e:
+            self.logger.error(f"查找VPN适配器时出错: {e}")
+        
+        return vpn_adapters
+    
+    def _check_dns_settings(self) -> List[str]:
+        """检查DNS设置问题"""
+        issues = []
+        
+        if not PSUTIL_AVAILABLE:
+            return issues
+        
+        try:
+            # 获取DNS服务器设置
+            # 这里只是简单实现，实际应该检查是否有异常的DNS服务器
+            # 例如VPN常用的DNS服务器
+            
+            # 常见的VPN DNS服务器
+            vpn_dns_servers = [
+                '8.8.8.8', '8.8.4.4',  # Google DNS（也可能是正常使用）
+                '1.1.1.1', '1.0.0.1',  # Cloudflare DNS
+                '208.67.222.222', '208.67.220.220',  # OpenDNS
+            ]
+            
+            # 这里可以添加更复杂的DNS检测逻辑
+            # 目前只是返回空列表
+            
+        except Exception as e:
+            self.logger.error(f"检查DNS设置时出错: {e}")
+        
+        return issues
+    
+    def _check_routing_table(self) -> List[str]:
+        """检查路由表问题"""
+        issues = []
+        
+        try:
+            # 在Windows上使用route print命令
+            if platform.system().lower() == 'windows':
+                result = subprocess.run(
+                    ['route', 'print'],
+                    capture_output=True,
+                    text=True,
+                    timeout=5
+                )
+                
+                if result.returncode == 0:
+                    output = result.stdout
+                    # 这里可以添加路由表分析逻辑
+                    # 例如检查是否有异常的路由规则
+                    
+        except Exception as e:
+            self.logger.error(f"检查路由表时出错: {e}")
+        
+        return issues
+    
+    def needs_repair(self) -> Tuple[bool, str, Dict[str, any]]:
+        """
+        综合判断是否需要网络修复
+        
+        Returns:
+            Tuple[bool, str, Dict[str, any]]: (是否需要修复, 原因, 详细信息)
+        """
+        self.logger.info("综合判断网络状态")
+        
+        # 检查互联网连通性
+        internet_result = self.check_internet()
+        
+        if internet_result['success']:
+            # 网络正常，检查VPN残留
+            vpn_result = self.check_vpn_residue()
+            
+            if vpn_result['has_issues']:
+                reason = "网络正常但存在VPN残留问题"
+                details = {
+                    'internet': internet_result,
+                    'vpn': vpn_result
+                }
+                return True, reason, details
+            else:
+                reason = "网络正常，无需修复"
+                details = {
+                    'internet': internet_result,
+                    'vpn': vpn_result
+                }
+                return False, reason, details
+        else:
+            # 网络异常，检查VPN残留
+            vpn_result = self.check_vpn_residue()
+            
+            if vpn_result['has_issues']:
+                reason = "网络异常且存在VPN残留问题"
+            else:
+                reason = "网络异常但未发现明显问题"
+            
+            details = {
+                'internet': internet_result,
+                'vpn': vpn_result
+            }
+            return True, reason, details
+    
+    def get_network_status(self) -> str:
+        """
+        获取网络状态摘要
+        
+        Returns:
+            str: 网络状态 ('healthy', 'needs_repair', 'offline')
+        """
+        needs_repair, reason, details = self.needs_repair()
+        
+        if not details['internet']['success']:
+            return 'offline'
+        elif needs_repair:
+            return 'needs_repair'
+        else:
+            return 'healthy'
+    
+    def wait_for_network(self, timeout: int = 60, interval: int = 5) -> bool:
+        """
+        等待网络恢复
+        
+        Args:
+            timeout: 总超时时间（秒）
+            interval: 检查间隔（秒）
+            
+        Returns:
+            bool: 是否在超时前恢复网络
+        """
+        self.logger.info(f"等待网络恢复，超时: {timeout}秒")
+        
+        start_time = time.time()
+        attempts = 0
+        
+        while time.time() - start_time < timeout:
+            attempts += 1
+            self.logger.debug(f"网络检查尝试 #{attempts}")
+            
+            result = self.check_internet()
+            if result['success']:
+                self.logger.info(f"网络在第{attempts}次尝试后恢复")
+                return True
+            
+            # 等待下一次检查
+            if time.time() - start_time + interval < timeout:
+                time.sleep(interval)
+        
+        self.logger.warning(f"等待网络恢复超时 ({timeout}秒)")
+        return False
+
+
+# 测试函数
+def test_network_monitor():
+    """测试网络监控器"""
+    import logging
+    logging.basicConfig(level=logging.DEBUG)
+    
+    monitor = NetworkMonitor()
+    
+    print("=== 网络监控器测试 ===")
+    
+    # 测试互联网连通性
+    print("\n1. 测试互联网连通性:")
+    internet_result = monitor.check_internet()
+    print(f"   成功: {internet_result['success']}")
+    print(f"   方法: {internet_result['method']}")
+    print(f"   错误: {internet_result['error']}")
+    
+    # 测试VPN残留检测
+    print("\n2. 测试VPN残留检测:")
+    vpn_result = monitor.check_vpn_residue()
+    print(f"   有VPN进程: {vpn_result['has_vpn_process']}")
+    print(f"   有VPN适配器: {vpn_result['has_vpn_adapter']}")
+    print(f"   有问题: {vpn_result['has_issues']}")
+    
+    # 测试综合判断
+    print("\n3. 测试综合判断:")
+    needs_repair, reason, details = monitor.needs_repair()
+    print(f"   需要修复: {needs_repair}")
+    print(f"   原因: {reason}")
+    
+    # 测试网络状态
+    print("\n4. 测试网络状态:")
+    status = monitor.get_network_status()
+    print(f"   网络状态: {status}")
+    
+    return internet_result['success']
+
+
+if __name__ == "__main__":
+    success = test_network_monitor()
+    sys.exit(0 if success else 1)

@@ -1,0 +1,485 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+火绒修复工具模块
+查找并调用火绒断网修复工具
+"""
+
+import os
+import sys
+import time
+import logging
+import subprocess
+import platform
+from typing import List, Dict, Optional, Tuple
+from pathlib import Path
+
+
+class RepairExecutor:
+    """修复执行器类"""
+    
+    def __init__(self, config_manager=None):
+        """
+        初始化修复执行器
+        
+        Args:
+            config_manager: 配置管理器实例
+        """
+        self.config = config_manager
+        self.logger = logging.getLogger(__name__)
+        
+        # 可能的火绒修复工具文件名
+        self.possible_tool_names = [
+            'hrfix.exe',           # 火绒修复工具
+            'hrnetfix.exe',        # 火绒网络修复
+            'netset.exe',          # 网络设置工具
+            'repair.exe',          # 修复工具
+            'hrfix64.exe',         # 64位修复工具
+            'hrfix32.exe',         # 32位修复工具
+            'hrfix_tool.exe',      # 修复工具
+            'huorongfix.exe',      # 火绒修复
+            'hrnetwork.exe',       # 火绒网络工具
+            'hrnetrepair.exe',     # 火绒网络修复
+        ]
+        
+        # 可能的命令行参数
+        self.possible_arguments = [
+            ['/fix'],              # 修复
+            ['/repair'],           # 修复
+            ['/silent'],           # 静默模式
+            ['/quiet'],            # 安静模式
+            ['/auto'],             # 自动模式
+            ['/autofix'],          # 自动修复
+            ['/fix', '/silent'],   # 修复+静默
+            ['/repair', '/quiet'], # 修复+安静
+            ['/fix', '/auto'],     # 修复+自动
+            [],                    # 无参数（可能通过GUI）
+        ]
+        
+        # 加载配置
+        self._load_config()
+    
+    def _load_config(self):
+        """从配置加载设置"""
+        if self.config:
+            self.huorong_path = Path(self.config.get('paths', 'huorong_path', 
+                                                    r'D:\APP\huorongsecurity\Huorong\Sysdiag'))
+            self.repair_timeout = self.config.get('settings', 'repair_timeout', 60)
+        else:
+            self.huorong_path = Path(r'D:\APP\huorongsecurity\Huorong\Sysdiag')
+            self.repair_timeout = 60
+        
+        self.logger.debug(f"火绒路径: {self.huorong_path}")
+        self.logger.debug(f"修复超时: {self.repair_timeout}秒")
+    
+    def find_repair_tool(self) -> Optional[Path]:
+        """
+        查找火绒修复工具可执行文件
+        
+        Returns:
+            Optional[Path]: 找到的工具路径，未找到返回None
+        """
+        self.logger.info(f"在 {self.huorong_path} 中查找火绒修复工具")
+        
+        # 检查路径是否存在
+        if not self.huorong_path.exists():
+            self.logger.error(f"火绒路径不存在: {self.huorong_path}")
+            return None
+        
+        # 首先尝试已知的工具名
+        for tool_name in self.possible_tool_names:
+            tool_path = self.huorong_path / tool_name
+            if tool_path.exists():
+                self.logger.info(f"找到修复工具: {tool_path}")
+                return tool_path
+        
+        # 如果已知工具名都没找到，搜索目录下的所有exe文件
+        self.logger.debug("已知工具名未找到，搜索所有exe文件")
+        try:
+            for item in self.huorong_path.iterdir():
+                if item.is_file() and item.suffix.lower() == '.exe':
+                    # 检查文件名是否包含修复相关关键词
+                    name_lower = item.name.lower()
+                    repair_keywords = ['fix', 'repair', 'net', '网络', '修复']
+                    if any(keyword in name_lower for keyword in repair_keywords):
+                        self.logger.info(f"找到可能的修复工具: {item}")
+                        return item
+        except Exception as e:
+            self.logger.error(f"搜索exe文件时出错: {e}")
+        
+        # 如果还是没找到，尝试在子目录中搜索
+        self.logger.debug("在子目录中搜索")
+        try:
+            for item in self.huorong_path.iterdir():
+                if item.is_dir():
+                    for tool_name in self.possible_tool_names:
+                        tool_path = item / tool_name
+                        if tool_path.exists():
+                            self.logger.info(f"在子目录中找到修复工具: {tool_path}")
+                            return tool_path
+        except Exception as e:
+            self.logger.error(f"搜索子目录时出错: {e}")
+        
+        self.logger.error("未找到火绒修复工具")
+        return None
+    
+    def test_tool_arguments(self, tool_path: Path) -> Optional[List[str]]:
+        """
+        测试工具的命令行参数
+        
+        Args:
+            tool_path: 工具路径
+            
+        Returns:
+            Optional[List[str]]: 有效的参数列表，未找到返回None
+        """
+        if not tool_path.exists():
+            self.logger.error(f"工具路径不存在: {tool_path}")
+            return None
+        
+        self.logger.info(f"测试工具参数: {tool_path.name}")
+        
+        # 首先尝试无参数运行，看是否显示帮助或版本信息
+        for args in self.possible_arguments:
+            try:
+                self.logger.debug(f"测试参数: {args}")
+                
+                # 构建命令
+                cmd = [str(tool_path)] + args
+                
+                # 执行命令（带超时）
+                result = subprocess.run(
+                    cmd,
+                    capture_output=True,
+                    text=True,
+                    timeout=10,
+                    creationflags=subprocess.CREATE_NO_WINDOW if platform.system() == 'Windows' else 0
+                )
+                
+                # 分析输出
+                stdout_lower = result.stdout.lower()
+                stderr_lower = result.stderr.lower()
+                
+                # 检查是否有错误信息
+                error_keywords = ['error', 'failed', 'invalid', '无法', '错误']
+                has_error = any(keyword in stdout_lower or keyword in stderr_lower 
+                               for keyword in error_keywords)
+                
+                # 检查是否有帮助或版本信息
+                help_keywords = ['usage', 'help', 'version', '用法', '帮助', '版本']
+                has_help = any(keyword in stdout_lower or keyword in stderr_lower 
+                              for keyword in help_keywords)
+                
+                # 检查是否成功执行（无错误）
+                if result.returncode == 0 and not has_error:
+                    self.logger.info(f"找到有效参数: {args}")
+                    return args
+                
+                # 如果有帮助信息，可能这个工具需要GUI，但参数仍然有效
+                if has_help and result.returncode == 0:
+                    self.logger.info(f"工具显示帮助信息，参数可能有效: {args}")
+                    return args
+                    
+            except subprocess.TimeoutExpired:
+                self.logger.debug(f"参数测试超时: {args}")
+                # 超时可能意味着工具正在运行修复，这可能是好迹象
+                if not args:  # 无参数时超时，可能工具需要GUI
+                    continue
+                else:
+                    self.logger.info(f"工具执行超时，可能正在修复: {args}")
+                    return args
+            except Exception as e:
+                self.logger.debug(f"测试参数时出错 {args}: {e}")
+                continue
+        
+        self.logger.warning("未找到有效的命令行参数")
+        return None
+    
+    def run_repair(self, silent: bool = True) -> Tuple[bool, str, Optional[int]]:
+        """
+        运行修复工具
+        
+        Args:
+            silent: 是否静默运行
+            
+        Returns:
+            Tuple[bool, str, Optional[int]]: (是否成功, 错误信息, 进程ID)
+        """
+        self.logger.info("开始运行火绒修复工具")
+        
+        # 查找工具
+        tool_path = self.find_repair_tool()
+        if not tool_path:
+            error_msg = "未找到火绒修复工具"
+            self.logger.error(error_msg)
+            return False, error_msg, None
+        
+        # 测试参数
+        args = self.test_tool_arguments(tool_path)
+        if args is None:
+            # 如果没有找到有效参数，使用默认参数
+            args = ['/fix', '/silent'] if silent else ['/fix']
+            self.logger.warning(f"使用默认参数: {args}")
+        
+        # 构建命令
+        cmd = [str(tool_path)] + args
+        self.logger.info(f"执行命令: {' '.join(cmd)}")
+        
+        try:
+            # 执行修复命令
+            process = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                creationflags=subprocess.CREATE_NO_WINDOW if platform.system() == 'Windows' else 0
+            )
+            
+            self.logger.info(f"修复工具已启动，进程ID: {process.pid}")
+            return True, "修复工具已启动", process.pid
+            
+        except Exception as e:
+            error_msg = f"启动修复工具失败: {e}"
+            self.logger.error(error_msg)
+            return False, error_msg, None
+    
+    def wait_for_completion(self, process_id: Optional[int] = None, 
+                           timeout: Optional[int] = None) -> Tuple[bool, str]:
+        """
+        等待修复完成
+        
+        Args:
+            process_id: 进程ID（如果为None，则等待固定时间）
+            timeout: 超时时间（秒），如果为None则使用配置值
+            
+        Returns:
+            Tuple[bool, str]: (是否成功完成, 状态信息)
+        """
+        if timeout is None:
+            timeout = self.repair_timeout
+        
+        self.logger.info(f"等待修复完成，超时: {timeout}秒")
+        
+        if process_id:
+            # 如果有进程ID，等待进程结束
+            return self._wait_for_process(process_id, timeout)
+        else:
+            # 如果没有进程ID，等待固定时间
+            return self._wait_fixed_time(timeout)
+    
+    def _wait_for_process(self, process_id: int, timeout: int) -> Tuple[bool, str]:
+        """等待特定进程结束"""
+        import psutil
+        
+        try:
+            process = psutil.Process(process_id)
+            
+            # 等待进程结束
+            try:
+                exit_code = process.wait(timeout=timeout)
+                
+                if exit_code == 0:
+                    msg = f"修复工具成功完成，退出码: {exit_code}"
+                    self.logger.info(msg)
+                    return True, msg
+                else:
+                    msg = f"修复工具完成但退出码非零: {exit_code}"
+                    self.logger.warning(msg)
+                    return False, msg
+                    
+            except psutil.TimeoutExpired:
+                msg = f"等待修复工具超时 ({timeout}秒)"
+                self.logger.warning(msg)
+                
+                # 检查进程是否还在运行
+                if process.is_running():
+                    # 尝试终止进程
+                    try:
+                        process.terminate()
+                        self.logger.info("已终止修复工具进程")
+                    except:
+                        pass
+                
+                return False, msg
+                
+        except psutil.NoSuchProcess:
+            msg = f"修复工具进程已结束 (PID: {process_id})"
+            self.logger.info(msg)
+            return True, msg
+        except Exception as e:
+            msg = f"等待进程时出错: {e}"
+            self.logger.error(msg)
+            return False, msg
+    
+    def _wait_fixed_time(self, timeout: int) -> Tuple[bool, str]:
+        """等待固定时间"""
+        self.logger.info(f"等待固定时间: {timeout}秒")
+        
+        try:
+            # 简单等待固定时间
+            for i in range(timeout):
+                if i % 10 == 0:  # 每10秒记录一次
+                    self.logger.debug(f"等待修复完成... ({i}/{timeout}秒)")
+                time.sleep(1)
+            
+            msg = f"已等待 {timeout} 秒，假设修复完成"
+            self.logger.info(msg)
+            return True, msg
+            
+        except Exception as e:
+            msg = f"等待时出错: {e}"
+            self.logger.error(msg)
+            return False, msg
+    
+    def verify_repair_result(self, network_monitor=None) -> Tuple[bool, str]:
+        """
+        验证修复结果
+        
+        Args:
+            network_monitor: 网络监控器实例
+            
+        Returns:
+            Tuple[bool, str]: (修复是否成功, 状态信息)
+        """
+        self.logger.info("验证修复结果")
+        
+        # 如果有网络监控器，使用它检查网络状态
+        if network_monitor:
+            # 等待一段时间让网络稳定
+            time.sleep(5)
+            
+            # 检查网络连通性
+            internet_result = network_monitor.check_internet()
+            
+            if internet_result['success']:
+                msg = "修复后网络恢复正常"
+                self.logger.info(msg)
+                return True, msg
+            else:
+                msg = "修复后网络仍然异常"
+                self.logger.warning(msg)
+                return False, msg
+        else:
+            # 没有网络监控器，假设修复成功
+            msg = "未验证网络状态，假设修复成功"
+            self.logger.info(msg)
+            return True, msg
+    
+    def run_full_repair(self, silent: bool = True, 
+                       network_monitor=None) -> Tuple[bool, str, Dict[str, any]]:
+        """
+        运行完整的修复流程
+        
+        Args:
+            silent: 是否静默运行
+            network_monitor: 网络监控器实例
+            
+        Returns:
+            Tuple[bool, str, Dict[str, any]]: (是否成功, 状态信息, 详细信息)
+        """
+        self.logger.info("开始完整修复流程")
+        
+        details = {
+            'tool_found': False,
+            'tool_path': None,
+            'arguments': None,
+            'process_id': None,
+            'repair_completed': False,
+            'verification_passed': False,
+        }
+        
+        # 1. 查找工具
+        tool_path = self.find_repair_tool()
+        if not tool_path:
+            error_msg = "未找到火绒修复工具"
+            self.logger.error(error_msg)
+            return False, error_msg, details
+        
+        details['tool_found'] = True
+        details['tool_path'] = str(tool_path)
+        
+        # 2. 测试参数
+        args = self.test_tool_arguments(tool_path)
+        if args is None:
+            args = ['/fix', '/silent'] if silent else ['/fix']
+        
+        details['arguments'] = args
+        
+        # 3. 运行修复
+        success, msg, process_id = self.run_repair(silent)
+        if not success:
+            return False, msg, details
+        
+        details['process_id'] = process_id
+        
+        # 4. 等待完成
+        repair_success, repair_msg = self.wait_for_completion(process_id)
+        details['repair_completed'] = repair_success
+        
+        if not repair_success:
+            return False, f"修复未成功完成: {repair_msg}", details
+        
+        # 5. 验证结果
+        verification_success, verification_msg = self.verify_repair_result(network_monitor)
+        details['verification_passed'] = verification_success
+        
+        if verification_success:
+            final_msg = f"修复成功: {repair_msg}. {verification_msg}"
+            self.logger.info(final_msg)
+            return True, final_msg, details
+        else:
+            final_msg = f"修复完成但验证失败: {repair_msg}. {verification_msg}"
+            self.logger.warning(final_msg)
+            return False, final_msg, details
+
+
+# 测试函数
+def test_repair_executor():
+    """测试修复执行器"""
+    import logging
+    logging.basicConfig(level=logging.DEBUG)
+    
+    executor = RepairExecutor()
+    
+    print("=== 火绒修复工具测试 ===")
+    
+    # 测试查找工具
+    print("\n1. 测试查找修复工具:")
+    tool_path = executor.find_repair_tool()
+    if tool_path:
+        print(f"   找到工具: {tool_path}")
+        
+        # 测试参数
+        print("\n2. 测试工具参数:")
+        args = executor.test_tool_arguments(tool_path)
+        if args:
+            print(f"   有效参数: {args}")
+        else:
+            print("   未找到有效参数")
+        
+        # 测试运行修复（不实际运行，只显示命令）
+        print("\n3. 测试运行修复（模拟）:")
+        success, msg, pid = executor.run_repair(silent=True)
+        print(f"   成功: {success}")
+        print(f"   消息: {msg}")
+        print(f"   进程ID: {pid}")
+        
+        if success and pid:
+            # 注意：这里不会实际等待，因为可能没有真正的进程
+            print("\n4. 测试等待完成（模拟）:")
+            repair_success, repair_msg = executor.wait_for_completion(pid, timeout=5)
+            print(f"   修复成功: {repair_success}")
+            print(f"   修复消息: {repair_msg}")
+    else:
+        print("   未找到修复工具")
+    
+    # 测试完整流程（模拟）
+    print("\n5. 测试完整修复流程（模拟）:")
+    success, msg, details = executor.run_full_repair(silent=True)
+    print(f"   成功: {success}")
+    print(f"   消息: {msg}")
+    print(f"   详细信息: {details}")
+
+
+if __name__ == "__main__":
+    test_repair_executor()

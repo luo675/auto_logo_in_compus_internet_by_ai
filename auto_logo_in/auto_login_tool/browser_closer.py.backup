@@ -1,0 +1,442 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+网页关闭模块
+自动检测并关闭校园网登录网页
+支持多种浏览器：Chrome, Edge, Firefox, IE
+"""
+
+import os
+import sys
+import time
+import logging
+import subprocess
+from typing import List, Optional, Tuple
+from pathlib import Path
+
+# 尝试导入GUI自动化库
+try:
+    import pywinauto
+    from pywinauto import Application, findwindows
+    from pywinauto.keyboard import send_keys
+    PYWINAUTO_AVAILABLE = True
+except ImportError:
+    PYWINAUTO_AVAILABLE = False
+    logging.warning("pywinauto库未安装，网页关闭功能受限")
+
+try:
+    import psutil
+    PSUTIL_AVAILABLE = True
+except ImportError:
+    PSUTIL_AVAILABLE = False
+    logging.warning("psutil库未安装，进程管理功能受限")
+
+
+class BrowserCloser:
+    """浏览器关闭器类"""
+    
+    def __init__(self, config_manager=None):
+        """
+        初始化浏览器关闭器
+        
+        Args:
+            config_manager: 配置管理器实例
+        """
+        self.config = config_manager
+        self.logger = logging.getLogger(__name__)
+        
+        # 浏览器进程名
+        self.browser_processes = {
+            'chrome': ['chrome.exe', 'chromium.exe'],
+            'edge': ['msedge.exe', 'edge.exe'],
+            'firefox': ['firefox.exe'],
+            'ie': ['iexplore.exe'],
+            'opera': ['opera.exe'],
+            'brave': ['brave.exe'],
+        }
+        
+        # 默认关键词
+        self.default_keywords = ['校园网', '登录', 'Dr.COM', '认证', '校园网络', '上网认证']
+        
+        # 加载配置
+        self._load_config()
+    
+    def _load_config(self):
+        """从配置加载设置"""
+        if self.config:
+            keywords_str = self.config.get('browser', 'browser_keywords', '')
+            if keywords_str:
+                self.keywords = [k.strip() for k in keywords_str.split(',') if k.strip()]
+            else:
+                self.keywords = self.default_keywords
+                
+            self.close_method = self.config.get('browser', 'close_method', 'alt_f4')
+            self.close_delay = self.config.get('browser', 'close_delay', 2)
+        else:
+            self.keywords = self.default_keywords
+            self.close_method = 'alt_f4'
+            self.close_delay = 2
+        
+        self.logger.debug(f"浏览器关键词: {self.keywords}")
+        self.logger.debug(f"关闭方法: {self.close_method}")
+    
+    def find_browser_windows(self) -> List[Tuple[str, int, str]]:
+        """
+        查找包含校园网登录关键词的浏览器窗口
+        
+        Returns:
+            List[Tuple[str, int, str]]: 列表元素为(窗口标题, 进程ID, 浏览器类型)
+        """
+        if not PYWINAUTO_AVAILABLE:
+            self.logger.warning("pywinauto不可用，无法查找浏览器窗口")
+            return []
+        
+        try:
+            windows = []
+            
+            # 获取所有可见窗口
+            all_windows = findwindows.find_windows(visible_only=True)
+            
+            for handle in all_windows:
+                try:
+                    # 获取窗口信息
+                    window = findwindows.Window(handle)
+                    title = window.text
+                    process_id = window.process
+                    
+                    # 检查窗口标题是否包含关键词
+                    if self._contains_keywords(title):
+                        # 确定浏览器类型
+                        browser_type = self._get_browser_type(process_id)
+                        windows.append((title, process_id, browser_type))
+                        self.logger.debug(f"找到浏览器窗口: {title} (PID: {process_id}, 类型: {browser_type})")
+                        
+                except Exception as e:
+                    self.logger.debug(f"检查窗口时出错: {e}")
+                    continue
+            
+            return windows
+            
+        except Exception as e:
+            self.logger.error(f"查找浏览器窗口时出错: {e}")
+            return []
+    
+    def _contains_keywords(self, text: str) -> bool:
+        """
+        检查文本是否包含关键词
+        
+        Args:
+            text: 要检查的文本
+            
+        Returns:
+            bool: 是否包含关键词
+        """
+        if not text:
+            return False
+        
+        text_lower = text.lower()
+        for keyword in self.keywords:
+            if keyword.lower() in text_lower:
+                return True
+        
+        return False
+    
+    def _get_browser_type(self, process_id: int) -> str:
+        """
+        根据进程ID确定浏览器类型
+        
+        Args:
+            process_id: 进程ID
+            
+        Returns:
+            str: 浏览器类型 (chrome, edge, firefox, ie, unknown)
+        """
+        if not PSUTIL_AVAILABLE:
+            return "unknown"
+        
+        try:
+            process = psutil.Process(process_id)
+            exe_name = process.name().lower()
+            
+            for browser_type, process_names in self.browser_processes.items():
+                for name in process_names:
+                    if name.lower() in exe_name:
+                        return browser_type
+            
+            return "unknown"
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            return "unknown"
+    
+    def is_browser_open(self) -> bool:
+        """
+        检查是否有校园网登录网页打开
+        
+        Returns:
+            bool: 是否有相关网页打开
+        """
+        windows = self.find_browser_windows()
+        return len(windows) > 0
+    
+    def close_browser_windows(self, force: bool = False) -> int:
+        """
+        关闭校园网登录网页
+        
+        Args:
+            force: 是否强制关闭（终止进程）
+            
+        Returns:
+            int: 关闭的窗口数量
+        """
+        windows = self.find_browser_windows()
+        if not windows:
+            self.logger.info("未找到需要关闭的浏览器窗口")
+            return 0
+        
+        self.logger.info(f"找到 {len(windows)} 个需要关闭的浏览器窗口")
+        
+        closed_count = 0
+        
+        for title, process_id, browser_type in windows:
+            try:
+                if self._close_window(title, process_id, browser_type, force):
+                    closed_count += 1
+                    self.logger.info(f"成功关闭窗口: {title}")
+                    
+                    # 等待一段时间，避免操作过快
+                    time.sleep(self.close_delay)
+                    
+            except Exception as e:
+                self.logger.error(f"关闭窗口时出错 ({title}): {e}")
+        
+        return closed_count
+    
+    def _close_window(self, title: str, process_id: int, browser_type: str, force: bool) -> bool:
+        """
+        关闭单个浏览器窗口
+        
+        Args:
+            title: 窗口标题
+            process_id: 进程ID
+            browser_type: 浏览器类型
+            force: 是否强制关闭
+            
+        Returns:
+            bool: 是否成功关闭
+        """
+        # 根据配置选择关闭方法
+        if force or self.close_method == 'kill_process':
+            return self._kill_browser_process(process_id, browser_type)
+        elif self.close_method == 'ctrl_w':
+            return self._send_ctrl_w(title, process_id)
+        else:  # 默认使用alt_f4
+            return self._send_alt_f4(title, process_id)
+    
+    def _send_alt_f4(self, title: str, process_id: int) -> bool:
+        """
+        发送Alt+F4关闭窗口
+        
+        Args:
+            title: 窗口标题
+            process_id: 进程ID
+            
+        Returns:
+            bool: 是否成功
+        """
+        if not PYWINAUTO_AVAILABLE:
+            self.logger.warning("pywinauto不可用，无法发送Alt+F4")
+            return False
+        
+        try:
+            # 连接到应用程序
+            app = Application().connect(process=process_id)
+            
+            # 获取主窗口
+            window = app.window(title=title)
+            
+            # 激活窗口
+            window.set_focus()
+            time.sleep(0.5)
+            
+            # 发送Alt+F4
+            send_keys('%{F4}')
+            
+            self.logger.debug(f"已发送Alt+F4到窗口: {title}")
+            return True
+            
+        except Exception as e:
+            self.logger.debug(f"发送Alt+F4失败 ({title}): {e}")
+            return False
+    
+    def _send_ctrl_w(self, title: str, process_id: int) -> bool:
+        """
+        发送Ctrl+W关闭标签页
+        
+        Args:
+            title: 窗口标题
+            process_id: 进程ID
+            
+        Returns:
+            bool: 是否成功
+        """
+        if not PYWINAUTO_AVAILABLE:
+            self.logger.warning("pywinauto不可用，无法发送Ctrl+W")
+            return False
+        
+        try:
+            # 连接到应用程序
+            app = Application().connect(process=process_id)
+            
+            # 获取主窗口
+            window = app.window(title=title)
+            
+            # 激活窗口
+            window.set_focus()
+            time.sleep(0.5)
+            
+            # 发送Ctrl+W
+            send_keys('^w')
+            
+            self.logger.debug(f"已发送Ctrl+W到窗口: {title}")
+            return True
+            
+        except Exception as e:
+            self.logger.debug(f"发送Ctrl+W失败 ({title}): {e}")
+            return False
+    
+    def _kill_browser_process(self, process_id: int, browser_type: str) -> bool:
+        """
+        终止浏览器进程（强制关闭）
+        
+        Args:
+            process_id: 进程ID
+            browser_type: 浏览器类型
+            
+        Returns:
+            bool: 是否成功
+        """
+        if not PSUTIL_AVAILABLE:
+            self.logger.warning("psutil不可用，无法终止进程")
+            return False
+        
+        try:
+            process = psutil.Process(process_id)
+            
+            # 检查是否有其他重要标签页（简单实现）
+            # 这里可以更复杂地检查，但为了简单起见，我们直接终止
+            self.logger.warning(f"强制终止浏览器进程: {browser_type} (PID: {process_id})")
+            
+            # 终止进程
+            process.terminate()
+            
+            # 等待进程结束
+            try:
+                process.wait(timeout=5)
+            except psutil.TimeoutExpired:
+                # 如果超时，强制杀死
+                process.kill()
+            
+            return True
+            
+        except (psutil.NoSuchProcess, psutil.AccessDenied) as e:
+            self.logger.debug(f"终止进程失败 (PID: {process_id}): {e}")
+            return False
+    
+    def close_all_browsers(self) -> int:
+        """
+        关闭所有浏览器（谨慎使用）
+        
+        Returns:
+            int: 关闭的进程数量
+        """
+        if not PSUTIL_AVAILABLE:
+            self.logger.warning("psutil不可用，无法关闭所有浏览器")
+            return 0
+        
+        closed_count = 0
+        
+        # 获取所有浏览器进程
+        for proc in psutil.process_iter(['pid', 'name']):
+            try:
+                proc_name = proc.info['name'].lower()
+                
+                # 检查是否是浏览器进程
+                is_browser = False
+                for browser_type, process_names in self.browser_processes.items():
+                    for name in process_names:
+                        if name.lower() in proc_name:
+                            is_browser = True
+                            break
+                    if is_browser:
+                        break
+                
+                if is_browser:
+                    self.logger.warning(f"强制终止浏览器进程: {proc_name} (PID: {proc.info['pid']})")
+                    proc.terminate()
+                    closed_count += 1
+                    
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                continue
+        
+        return closed_count
+    
+    def wait_for_browser_close(self, timeout: int = 30) -> bool:
+        """
+        等待浏览器窗口关闭
+        
+        Args:
+            timeout: 超时时间（秒）
+            
+        Returns:
+            bool: 是否成功关闭
+        """
+        start_time = time.time()
+        
+        while time.time() - start_time < timeout:
+            if not self.is_browser_open():
+                self.logger.info("所有浏览器窗口已关闭")
+                return True
+            
+            self.logger.debug("等待浏览器窗口关闭...")
+            time.sleep(2)
+        
+        self.logger.warning(f"等待浏览器关闭超时 ({timeout}秒)")
+        return False
+
+
+# 测试函数
+def test_browser_closer():
+    """测试浏览器关闭器"""
+    import logging
+    logging.basicConfig(level=logging.DEBUG)
+    
+    closer = BrowserCloser()
+    
+    print("=== 浏览器关闭器测试 ===")
+    
+    # 检查是否有浏览器窗口打开
+    has_browser = closer.is_browser_open()
+    print(f"是否有校园网登录网页打开: {has_browser}")
+    
+    if has_browser:
+        # 查找浏览器窗口
+        windows = closer.find_browser_windows()
+        print(f"找到 {len(windows)} 个浏览器窗口:")
+        for title, pid, browser_type in windows:
+            print(f"  - {title} (PID: {pid}, 类型: {browser_type})")
+        
+        # 询问是否关闭
+        response = input("\n是否关闭这些窗口？(y/n): ")
+        if response.lower() == 'y':
+            closed = closer.close_browser_windows()
+            print(f"已关闭 {closed} 个窗口")
+            
+            # 等待关闭
+            if closed > 0:
+                success = closer.wait_for_browser_close(10)
+                print(f"等待关闭结果: {success}")
+    else:
+        print("没有找到需要关闭的浏览器窗口")
+
+
+if __name__ == "__main__":
+    test_browser_closer()

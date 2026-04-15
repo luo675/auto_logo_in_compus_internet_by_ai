@@ -1,0 +1,37 @@
+# 校园网自动登录工具配置文件模板
+# 复制此文件为 config.ini 并填写实际值
+
+[credentials]
+# 校园网账号密码（建议使用Windows凭据管理器，这里仅作备选）
+username = your_username
+password = your_password_here  # 实际使用时会被加密存储
+
+[paths]
+# 火绒安全软件路径
+huorong_path = D:\APP\huorongsecurity\Huorong\Sysdiag
+# Dr.COM客户端路径
+drcom_path = C:\Users\luo\Desktop\APP\DrClient.exe
+
+[settings]
+# 开机后等待时间（秒）
+startup_delay = 30
+# 登录重试次数
+retry_count = 3
+# 重试间隔（秒）
+retry_interval = 10
+# 网络检测超时（秒）
+network_timeout = 10
+# 修复工具超时（秒）
+repair_timeout = 60
+# 是否启用Windows通知
+enable_notifications = true
+# 日志级别：DEBUG, INFO, WARNING, ERROR
+log_level = INFO
+
+[browser]
+# 需要关闭的浏览器窗口标题关键词（用逗号分隔）
+browser_keywords = 校园网,登录,Dr.COM,认证
+# 关闭浏览器的方法：alt_f4, ctrl_w, kill_process
+close_method = alt_f4
+# 关闭前等待时间（秒）
+close_delay = 2
